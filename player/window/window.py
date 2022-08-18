@@ -53,15 +53,14 @@ class MainWindow(QMainWindow):
         self._load_btns()
         
         # Set UI
-        self._fill_list_widget()
+        self.play_btn.setIcon(QtGui.QIcon(play_btn_switcher(self.player, self.play_btn, self.sound)))
+        self.current_playing_lbl.setText(clear_song_extension(self.player.song.current_song))
+        self.music_container.setCurrentRow(self.player.song.song_index)
+        self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
+        self.volume_bar.setValue(self.player.volume)
         self.volume_bar.setTickPosition(10)
         self.volume_bar.setMaximum(100)
-        self.volume_bar.setValue(self.player.volume)
-        self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
-        self.music_container.setCurrentRow(self.player.song.song_index)
-        self.play_btn.setIcon(QtGui.QIcon(play_btn_switcher(self.player, self.play_btn, self.sound)))
-        self.current_playing_lbl.setText(clear_song_extension(
-                                        self.player.song.current_song))
+        self._fill_list_widget()
 
         # Set commands
         self.music_container.itemDoubleClicked.connect(lambda: self.manual_pick(self.music_container))
@@ -112,53 +111,44 @@ class MainWindow(QMainWindow):
 
     def _load_lists(self):
         self.music_container = self.findChild(QListWidget, 'music_container')
-        self.music_container.setStyleSheet(
-                            f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};")
+
+        self.music_container.setStyleSheet(f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};")
         self.music_container.setWordWrap(True)
         self.music_container.setSpacing(3)
 
     def _fill_list_widget(self):
         for song in self.player.song:
-            self.music_container.addItem(song)
-            # self.music_container.addItem(clear_song_extension(song))
+            self.music_container.addItem(song) #.addItem(clear_song_extension(song))
+            # Choose if a song will be displayed with its
+            # extension inside the list widget 
+        self.music_container.setCurrentRow(0)
 
+    def update_song(self):
+        self.music_container.setCurrentRow(self.player.song.song_index)
+        self.current_playing_lbl.setText(clear_song_extension(self.player.song.current_song))
+
+        self.sound = pyglet.media.Player()
+        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+        self.sound.queue(self.current_song)
+        self.sound.play() if self.player else self.sound.pause()
 
     def next_song(self):
         self.player.song.next()
-        self.music_container.setCurrentRow(self.player.song.song_index)
-        self.current_playing_lbl.setText(clear_song_extension(
-                                        self.player.song.current_song))
-
-        self.sound = pyglet.media.Player()
-        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
-        self.sound.queue(self.current_song)
-        self.sound.play() if self.player else self.sound.pause()
+        self.update_song()
 
     def prev_song(self):
         self.player.song.prev()
-        self.music_container.setCurrentRow(self.player.song.song_index)
-        self.current_playing_lbl.setText(clear_song_extension(
-                                        self.player.song.current_song))
-        
-        self.sound = pyglet.media.Player()
-        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
-        self.sound.queue(self.current_song)
-        self.sound.play() if self.player else self.sound.pause()
+        self.update_song()
 
     def manual_pick(self, music_container: QListWidget):
         self.player.song.user_pick(music_container.currentRow()) 
-        self.music_container.setCurrentRow(self.player.song.song_index)
-        self.current_playing_lbl.setText(clear_song_extension(
-                                        self.player.song.current_song))
-
-        self.sound = pyglet.media.Player()
-        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
-        self.sound.queue(self.current_song)
-        self.sound.play() if self.player else self.sound.pause()
+        self.update_song()
 
     def volume_control(self):
         self.player.set_volume(self.volume_bar.value())
         self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
         self.sound.volume = self.player.volume / 100 
-        # ^^ This is because self.sound.volume accepts 
+        #                                      ^^^^^
+        # This is because self.sound.volume accepts
         # values from 0.0 - 1.0 but I want to display 0 - 100
+        # Example: displayed = 50; 50 / 100 = 0.5
