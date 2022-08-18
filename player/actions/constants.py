@@ -14,3 +14,9 @@ TITLE:        str         = 'Awesome sound'
 VERISONS:     tuple       = ('v.0.5', )
 HEIGHT:       int         = 473
 WIDTH:        int         = 539
+
+SHORTCUTS: dict = {
+    'PLAY-PAUSE': 'Space',
+    'PREV SONG': '+',
+    'NEXT SONG': '-',
+}

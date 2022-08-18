@@ -19,9 +19,9 @@ class TestActions(unittest.TestCase):
     def test_switcer(self):
         for _ in range(20):
             self.assertTrue(self.player)
-            self.assertEqual(play_btn_switcher(self.player, 'btn', testing=True), PLAY_BTN)
+            self.assertEqual(play_btn_switcher(self.player, 'btn', 'pyglet', testing=True), PLAY_BTN)
             self.assertFalse(self.player)
-            self.assertEqual(play_btn_switcher(self.player, 'btn', testing=True), PAUSE_BTN)
+            self.assertEqual(play_btn_switcher(self.player, 'btn', 'pyglet', testing=True), PAUSE_BTN)
             self.assertTrue(self.player)
 
     def test_clear_extension(self):

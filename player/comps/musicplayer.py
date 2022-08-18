@@ -1,5 +1,6 @@
 from .song import Song
 
+
 class PlayerError(Exception): ...
 
 
@@ -11,10 +12,10 @@ class MusicPlayer:
         self._timestamp = self.set_timestamp(0)
 
     def __str__(self) -> str:
-        return f"<{self.__class__.__name__}(Playing - {self.song.current_song})>"
+        return f"<{self.__class__.__name__}(Playing - {self.song.current_song} - {'Alive' if self._is_playing else 'Not alive'})>"
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(Playing - {self.song.current_song})>"
+        return f"<{self.__class__.__name__}(Playing - {self.song.current_song} - {'Alive' if self._is_playing else 'Not alive'})>"
 
     def __bool__(self):
         return self._is_playing
@@ -48,5 +49,9 @@ class MusicPlayer:
         return timestamp
 
     def play(self) -> bool:
+        """Reverse the _is_playing value
+
+        :return bool: Current state of _is_playing
+        """
         self._is_playing = not self._is_playing
         return self._is_playing

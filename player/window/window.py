@@ -1,3 +1,4 @@
+import pyglet
 from comps.musicplayer import MusicPlayer
 from comps.song import Song
 from actions.constants import (
@@ -11,6 +12,7 @@ from actions.constants import (
     PLAY_BTN,
     THEMECLR,
     SONGSFILE,
+    SHORTCUTS,
     BACKGROUND,
     PREVIOUS_BTN,
 )
@@ -27,12 +29,10 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QApplication,
 )
-from PyQt5.QtGui import (
-    QKeySequence
-)
+from PyQt5.QtGui import QKeySequence
 from PyQt5 import uic, QtGui
 
-
+# self.sound.time -> Get total played of a sound
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -42,12 +42,15 @@ class MainWindow(QMainWindow):
         self.setFixedSize(WIDTH, HEIGHT)
 
         self.player = MusicPlayer(Song(SONGSFILE))
+        self.sound = pyglet.media.Player()
+        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+        self.sound.queue(self.current_song)
 
         # Load components
-        self._load_btns()
+        self._load_sliders()
         self._load_labels()
         self._load_lists()
-        self._load_sliders()
+        self._load_btns()
         
         # Set UI
         self._fill_list_widget()
@@ -56,23 +59,23 @@ class MainWindow(QMainWindow):
         self.volume_bar.setValue(self.player.volume)
         self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
         self.music_container.setCurrentRow(self.player.song.song_index)
-        self.play_btn.setIcon(QtGui.QIcon(play_btn_switcher(self.player, self.play_btn)))
+        self.play_btn.setIcon(QtGui.QIcon(play_btn_switcher(self.player, self.play_btn, self.sound)))
         self.current_playing_lbl.setText(clear_song_extension(
                                         self.player.song.current_song))
 
         # Set commands
         self.music_container.itemDoubleClicked.connect(lambda: self.manual_pick(self.music_container))
-        self.play_btn.clicked.connect(lambda: play_btn_switcher(self.player, self.play_btn))
+        self.play_btn.clicked.connect(lambda: play_btn_switcher(self.player, self.play_btn, self.sound))
         self.volume_bar.valueChanged.connect(lambda: self.volume_control())
         self.next_btn.clicked.connect(lambda: self.next_song())
         self.prev_btn.clicked.connect(lambda: self.prev_song())
 
         # Key binds
-        self.play_shortcut = QShortcut(QKeySequence('Space'), self)
-        self.next_shortcut = QShortcut(QKeySequence('+'), self)
-        self.prev_shortcut = QShortcut(QKeySequence('-'), self)
+        self.play_shortcut = QShortcut(QKeySequence(SHORTCUTS['PLAY-PAUSE']), self)
+        self.next_shortcut = QShortcut(QKeySequence(SHORTCUTS['NEXT SONG']), self)
+        self.prev_shortcut = QShortcut(QKeySequence(SHORTCUTS['PREV SONG']), self)
 
-        self.play_shortcut.activated.connect(lambda: play_btn_switcher(self.player, self.play_btn))
+        self.play_shortcut.activated.connect(lambda: play_btn_switcher(self.player, self.play_btn, self.sound))
         self.next_shortcut.activated.connect(lambda: self.next_song())
         self.prev_shortcut.activated.connect(lambda: self.prev_song())
 
@@ -105,17 +108,13 @@ class MainWindow(QMainWindow):
     def _load_lists(self):
         self.music_container = self.findChild(QListWidget, 'music_container')
         self.music_container.setStyleSheet(
-                            f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};"
-                            )
+                            f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};")
 
     def _fill_list_widget(self):
         for song in self.player.song:
             self.music_container.addItem(song)
             # self.music_container.addItem(clear_song_extension(song))
 
-    def _play_song(self):
-        " Not implemented yet "
-        raise NotImplementedError("This is not ready yet")
 
     def next_song(self):
         self.player.song.next()
@@ -123,11 +122,21 @@ class MainWindow(QMainWindow):
         self.current_playing_lbl.setText(clear_song_extension(
                                         self.player.song.current_song))
 
+        self.sound = pyglet.media.Player()
+        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+        self.sound.queue(self.current_song)
+        self.sound.play() if self.player else self.sound.pause()
+
     def prev_song(self):
         self.player.song.prev()
         self.music_container.setCurrentRow(self.player.song.song_index)
         self.current_playing_lbl.setText(clear_song_extension(
                                         self.player.song.current_song))
+        
+        self.sound = pyglet.media.Player()
+        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+        self.sound.queue(self.current_song)
+        self.sound.play() if self.player else self.sound.pause()
 
     def manual_pick(self, music_container: QListWidget):
         self.player.song.user_pick(music_container.currentRow()) 
@@ -135,6 +144,14 @@ class MainWindow(QMainWindow):
         self.current_playing_lbl.setText(clear_song_extension(
                                         self.player.song.current_song))
 
+        self.sound = pyglet.media.Player()
+        self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+        self.sound.queue(self.current_song)
+        self.sound.play() if self.player else self.sound.pause()
+
     def volume_control(self):
         self.player.set_volume(self.volume_bar.value())
         self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
+        self.sound.volume = self.player.volume / 100 
+        # ^^ This is because self.sound.volume accepts 
+        # values from 0.0 - 1.0 but I want to display 0 - 100

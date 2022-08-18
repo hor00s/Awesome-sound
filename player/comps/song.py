@@ -1,3 +1,5 @@
+import os
+
 class SingleToneSong(type):
     """Song class implements the SingleTon patter, which means that
     every time it's initiated it will return the same object,
@@ -41,6 +43,14 @@ class Song(metaclass=SingleToneSong):
     @property
     def current_song(self) -> str:
         return self._songs[self._playing_index]
+
+    @property
+    def current_song_as_file(self) -> str:
+        """Return the full path of the current song
+
+        :return str:
+        """        
+        return os.path.join('songs', self.current_song)
 
     def _reset_song_index(self, direction: str) -> int:
         """When the `next` or `previous` song is out
