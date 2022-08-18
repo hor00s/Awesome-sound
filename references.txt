@@ -1,0 +1,8 @@
+Modules:
+  - PyGame
+  - PyQt5
+
+Attributes:
+  - UI Icons:       https://www.flaticon.com
+  - UI Background:  https://pngtree.com/
+

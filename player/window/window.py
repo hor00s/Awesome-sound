@@ -1,0 +1,140 @@
+from comps.musicplayer import MusicPlayer
+from comps.song import Song
+from actions.constants import (
+    LOGO,
+    TITLE,
+    WIDTH,
+    HEIGHT,
+    VERISONS,
+    PLAYERUI,
+    NEXT_BTN,
+    PLAY_BTN,
+    THEMECLR,
+    SONGSFILE,
+    BACKGROUND,
+    PREVIOUS_BTN,
+)
+from actions.actions import (
+    play_btn_switcher,
+    clear_song_extension,
+)
+from PyQt5.QtWidgets import (
+    QLabel,
+    QSlider,
+    QShortcut,
+    QMainWindow,
+    QListWidget,
+    QPushButton,
+    QApplication,
+)
+from PyQt5.QtGui import (
+    QKeySequence
+)
+from PyQt5 import uic, QtGui
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        uic.loadUi(PLAYERUI, self)
+        self.setWindowTitle(f"{TITLE} {VERISONS[-1]}")
+        self.setWindowIcon(QtGui.QIcon(LOGO))
+        self.setFixedSize(WIDTH, HEIGHT)
+
+        self.player = MusicPlayer(Song(SONGSFILE))
+
+        # Load components
+        self._load_btns()
+        self._load_labels()
+        self._load_lists()
+        self._load_sliders()
+        
+        # Set UI
+        self._fill_list_widget()
+        self.volume_bar.setTickPosition(10)
+        self.volume_bar.setMaximum(100)
+        self.volume_bar.setValue(self.player.volume)
+        self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
+        self.music_container.setCurrentRow(self.player.song.song_index)
+        self.play_btn.setIcon(QtGui.QIcon(play_btn_switcher(self.player, self.play_btn)))
+        self.current_playing_lbl.setText(clear_song_extension(
+                                        self.player.song.current_song))
+
+        # Set commands
+        self.music_container.itemDoubleClicked.connect(lambda: self.manual_pick(self.music_container))
+        self.play_btn.clicked.connect(lambda: play_btn_switcher(self.player, self.play_btn))
+        self.volume_bar.valueChanged.connect(lambda: self.volume_control())
+        self.next_btn.clicked.connect(lambda: self.next_song())
+        self.prev_btn.clicked.connect(lambda: self.prev_song())
+
+        # Key binds
+        self.play_shortcut = QShortcut(QKeySequence('Space'), self)
+        self.next_shortcut = QShortcut(QKeySequence('+'), self)
+        self.prev_shortcut = QShortcut(QKeySequence('-'), self)
+
+        self.play_shortcut.activated.connect(lambda: play_btn_switcher(self.player, self.play_btn))
+        self.next_shortcut.activated.connect(lambda: self.next_song())
+        self.prev_shortcut.activated.connect(lambda: self.prev_song())
+
+    def _load_btns(self):
+        self.prev_btn = self.findChild(QPushButton, 'prev_btn')
+        self.next_btn = self.findChild(QPushButton, 'next_btn')
+        self.play_btn = self.findChild(QPushButton, 'play_btn')
+
+        self.prev_btn.setIcon(QtGui.QIcon(PREVIOUS_BTN))
+        self.next_btn.setIcon(QtGui.QIcon(NEXT_BTN))
+        self.play_btn.setIcon(QtGui.QIcon(PLAY_BTN))
+        
+    def _load_sliders(self):
+        self.music_prog_bar = self.findChild(QSlider, 'music_prog_bar')
+        self.volume_bar = self.findChild(QSlider, 'volume_bar')
+
+    def _load_labels(self):
+        self.current_playing_lbl = self.findChild(QLabel, 'current_playing_lbl')
+        self.current_time_lbl = self.findChild(QLabel, 'current_time_lbl')
+        self.total_time_lbl = self.findChild(QLabel, 'total_time_lbl')
+        self.volume_lbl = self.findChild(QLabel, 'volume_lbl')
+        self.bg_lbl = self.findChild(QLabel, 'bg_lbl')
+
+        self.bg_lbl.setStyleSheet(f"background-image : url({BACKGROUND})")
+        self.current_playing_lbl.setStyleSheet(f'color: {THEMECLR};')
+        self.current_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
+        self.total_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
+        self.volume_lbl.setStyleSheet((f'color: {THEMECLR};'))
+
+    def _load_lists(self):
+        self.music_container = self.findChild(QListWidget, 'music_container')
+        self.music_container.setStyleSheet(
+                            f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};"
+                            )
+
+    def _fill_list_widget(self):
+        for song in self.player.song:
+            self.music_container.addItem(song)
+            # self.music_container.addItem(clear_song_extension(song))
+
+    def _play_song(self):
+        " Not implemented yet "
+        raise NotImplementedError("This is not ready yet")
+
+    def next_song(self):
+        self.player.song.next()
+        self.music_container.setCurrentRow(self.player.song.song_index)
+        self.current_playing_lbl.setText(clear_song_extension(
+                                        self.player.song.current_song))
+
+    def prev_song(self):
+        self.player.song.prev()
+        self.music_container.setCurrentRow(self.player.song.song_index)
+        self.current_playing_lbl.setText(clear_song_extension(
+                                        self.player.song.current_song))
+
+    def manual_pick(self, music_container: QListWidget):
+        self.player.song.user_pick(music_container.currentRow()) 
+        self.music_container.setCurrentRow(self.player.song.song_index)
+        self.current_playing_lbl.setText(clear_song_extension(
+                                        self.player.song.current_song))
+
+    def volume_control(self):
+        self.player.set_volume(self.volume_bar.value())
+        self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
