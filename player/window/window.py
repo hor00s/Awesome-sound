@@ -1,6 +1,6 @@
 import pyglet
-from comps.musicplayer import MusicPlayer
 from comps.song import Song
+from comps.musicplayer import MusicPlayer
 from actions.constants import (
     LOGO,
     TITLE,
@@ -88,6 +88,10 @@ class MainWindow(QMainWindow):
         self.next_btn.setIcon(QtGui.QIcon(NEXT_BTN))
         self.play_btn.setIcon(QtGui.QIcon(PLAY_BTN))
         
+        self.prev_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.next_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.play_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+
     def _load_sliders(self):
         self.music_prog_bar = self.findChild(QSlider, 'music_prog_bar')
         self.volume_bar = self.findChild(QSlider, 'volume_bar')
@@ -111,7 +115,7 @@ class MainWindow(QMainWindow):
         self.music_container.setStyleSheet(
                             f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};")
         self.music_container.setWordWrap(True)
-        self.music_container.setSpacing(4)
+        self.music_container.setSpacing(3)
 
     def _fill_list_widget(self):
         for song in self.player.song:
