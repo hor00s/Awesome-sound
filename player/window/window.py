@@ -104,11 +104,14 @@ class MainWindow(QMainWindow):
         self.current_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.total_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.volume_lbl.setStyleSheet((f'color: {THEMECLR};'))
+        self.current_playing_lbl.setWordWrap(True)
 
     def _load_lists(self):
         self.music_container = self.findChild(QListWidget, 'music_container')
         self.music_container.setStyleSheet(
                             f"background-color: rgba(255, 255, 255, 0); color: {THEMECLR};")
+        self.music_container.setWordWrap(True)
+        self.music_container.setSpacing(4)
 
     def _fill_list_widget(self):
         for song in self.player.song:
