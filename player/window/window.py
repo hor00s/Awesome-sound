@@ -56,15 +56,15 @@ class MainWindow(QMainWindow):
         self.play_btn.setIcon(QtGui.QIcon(play_btn_switcher(self.player, self.play_btn, self.sound)))
         self.current_playing_lbl.setText(clear_song_extension(self.player.song.current_song))
         self.music_container.setCurrentRow(self.player.song.song_index)
-        self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
+        self.volume_lbl.setText(f"Vol: {self.player.volume}")
         self.volume_bar.setValue(self.player.volume)
         self.volume_bar.setTickPosition(10)
         self.volume_bar.setMaximum(100)
         self._fill_list_widget()
 
         # Set commands
-        self.music_container.itemDoubleClicked.connect(lambda: self.manual_pick(self.music_container))
         self.play_btn.clicked.connect(lambda: play_btn_switcher(self.player, self.play_btn, self.sound))
+        self.music_container.itemDoubleClicked.connect(lambda: self.manual_pick(self.music_container))
         self.volume_bar.valueChanged.connect(lambda: self.volume_control())
         self.next_btn.clicked.connect(lambda: self.next_song())
         self.prev_btn.clicked.connect(lambda: self.prev_song())
@@ -124,8 +124,8 @@ class MainWindow(QMainWindow):
         self.music_container.setCurrentRow(0)
 
     def update_song(self):
-        self.music_container.setCurrentRow(self.player.song.song_index)
         self.current_playing_lbl.setText(clear_song_extension(self.player.song.current_song))
+        self.music_container.setCurrentRow(self.player.song.song_index)
 
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
