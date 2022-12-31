@@ -1,4 +1,6 @@
 import pyglet
+import datetime
+from tinytag import TinyTag
 from comps.song import Song
 from comps.musicplayer import MusicPlayer
 from actions.constants import (
@@ -30,8 +32,10 @@ from PyQt5.QtWidgets import (
     QApplication,
 )
 from PyQt5.QtGui import QKeySequence
+from PyQt5.QtCore import QTimer
 from PyQt5 import uic, QtGui
 
+# self.sound.position -> Somethong
 # self.sound.time -> Get total played of a sound
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -77,6 +81,11 @@ class MainWindow(QMainWindow):
         self.play_shortcut.activated.connect(lambda: play_btn_switcher(self.player, self.play_btn, self.sound))
         self.next_shortcut.activated.connect(lambda: self.next_song())
         self.prev_shortcut.activated.connect(lambda: self.prev_song())
+
+        # Dynamic updating
+        timer = QTimer(self.total_time_lbl)
+        timer.timeout.connect(self.update)
+        timer.start(1000)
 
     def _load_btns(self):
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
@@ -152,3 +161,30 @@ class MainWindow(QMainWindow):
         # This is because self.sound.volume accepts
         # values from 0.0 - 1.0 but I want to display 0 - 100
         # Example: displayed = 50; 50 / 100 = 0.5
+
+    def helper_update_slider(self, slider: QSlider, x: int):
+            slider.tracking = True
+            slider.setValue(x)
+            slider.sliderPosition = x
+            slider.update()
+            slider.repaint()
+
+    def update(self):
+        tag = TinyTag.get(self.player.song.current_song_as_file)
+        total_time = tag.duration
+        self.music_prog_bar.setRange(0, int(tag.duration)) # Set the total steps of the slider
+
+        # Current time. Use this for the slider update
+        current_time = self.sound.time
+        self.helper_update_slider(self.music_prog_bar, int(current_time)) # Update slider's position
+
+        if current_time >= total_time:
+            self.next_song()
+        
+        seconds_to_minute_format = str(datetime.timedelta(seconds=current_time))
+        total_time_to_minute = str(datetime.timedelta(seconds=total_time))
+
+        self.total_time_lbl.setText(total_time_to_minute[:total_time_to_minute.index('.')])
+
+        if '.' in seconds_to_minute_format:
+            self.current_time_lbl.setText(seconds_to_minute_format[:seconds_to_minute_format.index('.')])

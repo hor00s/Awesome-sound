@@ -9,7 +9,6 @@ class MusicPlayer:
         self.song = song
         self._is_playing = True
         self._volume = self.set_volume(100)
-        self._timestamp = self.set_timestamp(0)
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}(Playing - {self.song.current_song} - {'Alive' if self._is_playing else 'Not alive'})>"
@@ -23,10 +22,6 @@ class MusicPlayer:
     @property
     def volume(self) -> int:
         return self._volume
-
-    @property
-    def timestamp(self) -> int:
-        return self._timestamp
 
     @property
     def is_playing(self) -> bool:
@@ -43,10 +38,6 @@ class MusicPlayer:
             raise PlayerError(f"Volume must remain between 0 - 100. It cannot be {volume}")
         self._volume = volume
         return self._volume
-
-    def set_timestamp(self, timestamp: int):
-        "TODO: Later see how to get the timestamp of each song"
-        return timestamp
 
     def play(self) -> bool:
         """Reverse the _is_playing value

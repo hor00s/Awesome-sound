@@ -1,6 +1,6 @@
 Modules:
-  - PyGame
-  - PyQt5
+  - PyQt5: https://pypi.org/project/PyQt5 (Graphics)
+  - Pyglet https://pypi.org/project/pyglet (Sound rendering / Image rendering...)
 
 Attributes:
   - UI Icons:       https://www.flaticon.com

@@ -170,7 +170,7 @@
    <widget class="QLabel" name="current_time_lbl">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>400</y>
       <width>63</width>
       <height>20</height>
@@ -183,13 +183,13 @@
      </font>
     </property>
     <property name="text">
-     <string>00:00</string>
+     <string>0:00:00</string>
     </property>
    </widget>
    <widget class="QLabel" name="total_time_lbl">
     <property name="geometry">
      <rect>
-      <x>480</x>
+      <x>470</x>
       <y>400</y>
       <width>63</width>
       <height>20</height>
@@ -202,7 +202,7 @@
      </font>
     </property>
     <property name="text">
-     <string>00:00</string>
+     <string>0:00:00</string>
     </property>
    </widget>
    <zorder>bg_lbl</zorder>
