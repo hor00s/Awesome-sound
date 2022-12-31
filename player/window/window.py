@@ -4,6 +4,7 @@ from tinytag import TinyTag
 from comps.song import Song
 from comps.musicplayer import MusicPlayer
 from actions.constants import (
+    FPS,
     LOGO,
     TITLE,
     WIDTH,
@@ -85,7 +86,7 @@ class MainWindow(QMainWindow):
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
         timer.timeout.connect(self.update)
-        timer.start(1000)
+        timer.start(FPS(20))
 
     def _load_btns(self):
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
