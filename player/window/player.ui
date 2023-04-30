@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>539</width>
-    <height>473</height>
+    <height>553</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -172,7 +172,7 @@
      <rect>
       <x>10</x>
       <y>400</y>
-      <width>63</width>
+      <width>81</width>
       <height>20</height>
      </rect>
     </property>
@@ -183,7 +183,7 @@
      </font>
     </property>
     <property name="text">
-     <string>0:00:00</string>
+     <string>0:00:00.00</string>
     </property>
    </widget>
    <widget class="QLabel" name="total_time_lbl">
@@ -205,6 +205,22 @@
      <string>0:00:00</string>
     </property>
    </widget>
+   <widget class="QLabel" name="lyrics_lbl">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>361</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+   </widget>
    <zorder>bg_lbl</zorder>
    <zorder>music_prog_bar</zorder>
    <zorder>volume_bar</zorder>
@@ -216,6 +232,7 @@
    <zorder>volume_lbl</zorder>
    <zorder>current_time_lbl</zorder>
    <zorder>total_time_lbl</zorder>
+   <zorder>lyrics_lbl</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -237,13 +254,31 @@
     </property>
     <addaction name="actionShortcuts"/>
    </widget>
+   <widget class="QMenu" name="menuLyrics">
+    <property name="title">
+     <string>Lyrics</string>
+    </property>
+    <addaction name="actionChoose_file"/>
+    <addaction name="actionCreate"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
+   <addaction name="menuLyrics"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionShortcuts">
    <property name="text">
     <string>Shortcuts</string>
+   </property>
+  </action>
+  <action name="actionChoose_file">
+   <property name="text">
+    <string>Choose file</string>
+   </property>
+  </action>
+  <action name="actionCreate">
+   <property name="text">
+    <string>Create</string>
    </property>
   </action>
  </widget>

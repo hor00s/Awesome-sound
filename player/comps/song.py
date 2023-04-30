@@ -95,3 +95,8 @@ class Song(metaclass=SingleToneSong):
             raise IndexError("Songl list index cannot be negative")
         self._playing_index = index
         return self._songs[self._playing_index]
+
+    def without_extension(self):
+        reverse = self.current_song[::-1]
+        # ext.sgsdgsd
+        return reverse[reverse.index('.') + 1:][::-1]

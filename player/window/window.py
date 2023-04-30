@@ -1,8 +1,12 @@
+import os
 import pyglet
 import datetime
+from typing import Union
 from tinytag import TinyTag
 from comps.song import Song
 from comps.musicplayer import MusicPlayer
+from lyricshandler.creator import Creator
+from lyricshandler.renderer import Renderer
 from actions.constants import (
     FPS,
     LOGO,
@@ -16,6 +20,7 @@ from actions.constants import (
     THEMECLR,
     SONGSFILE,
     SHORTCUTS,
+    LYRICS_DIR,
     BACKGROUND,
     PREVIOUS_BTN,
 )
@@ -30,6 +35,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QListWidget,
     QPushButton,
+    QFileDialog,
     QApplication,
 )
 from PyQt5.QtGui import QKeySequence
@@ -47,8 +53,13 @@ class MainWindow(QMainWindow):
         self.setFixedSize(WIDTH, HEIGHT)
 
         self.player = MusicPlayer(Song(SONGSFILE))
+
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+
+        song_lyrics = self._get_lyrics_file()
+        self.lyrics = Renderer(song_lyrics)
+
         self.sound.queue(self.current_song)
 
         # Load components
@@ -83,10 +94,24 @@ class MainWindow(QMainWindow):
         self.next_shortcut.activated.connect(lambda: self.next_song())
         self.prev_shortcut.activated.connect(lambda: self.prev_song())
 
+        # Menu actions
+        self.actionChoose_file.triggered.connect(lambda: self.manual_pick_lyrics())
+        self.actionCreate.triggered.connect(lambda: print('create'))
+        self.actionShortcuts.triggered.connect(lambda: print('shortcuts'))
+
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
         timer.timeout.connect(self.update)
         timer.start(FPS(20))
+
+    def _get_lyrics_file(self):
+        lyrics_file = os.path.join(LYRICS_DIR, self.player.song.without_extension() + Renderer.EXTENSION)
+        if not os.path.exists(lyrics_file):
+            lyrics_file = os.path.join(LYRICS_DIR, 'fake.srt')
+            with open(lyrics_file, mode='w') as f:
+                f.write("1\n00:00:00,000 --> 00:25:00,000\n")
+
+        return lyrics_file
 
     def _load_btns(self):
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
@@ -110,8 +135,10 @@ class MainWindow(QMainWindow):
         self.current_time_lbl = self.findChild(QLabel, 'current_time_lbl')
         self.total_time_lbl = self.findChild(QLabel, 'total_time_lbl')
         self.volume_lbl = self.findChild(QLabel, 'volume_lbl')
+        self.lyrics_lbl = self.findChild(QLabel, 'lyrics_lbl')
         self.bg_lbl = self.findChild(QLabel, 'bg_lbl')
 
+        self.lyrics_lbl.setStyleSheet('color: white; font-weight: bold; font-size: 20px; background-color: rgba(255, 255, 255, 0);')
         self.bg_lbl.setStyleSheet(f"background-image : url({BACKGROUND})")
         self.current_playing_lbl.setStyleSheet(f'color: {THEMECLR};')
         self.current_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
@@ -133,13 +160,31 @@ class MainWindow(QMainWindow):
             # extension inside the list widget 
         self.music_container.setCurrentRow(0)
 
+    def manual_pick_lyrics(self):
+        path = self._file_explorer()
+        creator = Creator(self.player.song, LYRICS_DIR)
+        creator.manual_save(path)
+
+    def _file_explorer(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Choose file", "", "Srt files (*.srt)")
+        return path
+
+    def display_lyric(self, line: Union[str, None]):
+        if line is not None:
+            self.lyrics_lbl.setText(line)
+
     def update_song(self):
         self.current_playing_lbl.setText(clear_song_extension(self.player.song.current_song))
         self.music_container.setCurrentRow(self.player.song.song_index)
 
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.song.current_song_as_file)
+
+        song_lyrics = self._get_lyrics_file()
+        self.lyrics = Renderer(song_lyrics)
+
         self.sound.queue(self.current_song)
+
         self.sound.play() if self.player else self.sound.pause()
 
     def next_song(self):
@@ -164,11 +209,11 @@ class MainWindow(QMainWindow):
         # Example: displayed = 50; 50 / 100 = 0.5
 
     def helper_update_slider(self, slider: QSlider, x: int):
-            slider.tracking = True
-            slider.setValue(x)
-            slider.sliderPosition = x
-            slider.update()
-            slider.repaint()
+        slider.tracking = True
+        slider.setValue(x)
+        slider.sliderPosition = x
+        slider.update()
+        slider.repaint()
 
     def update(self):
         tag = TinyTag.get(self.player.song.current_song_as_file)
@@ -182,10 +227,13 @@ class MainWindow(QMainWindow):
         if current_time >= total_time:
             self.next_song()
         
-        seconds_to_minute_format = str(datetime.timedelta(seconds=current_time))
-        total_time_to_minute = str(datetime.timedelta(seconds=total_time))
+        seconds_to_minute_format = datetime.timedelta(seconds=current_time)
+        total_time_to_minute = str(datetime.timedelta(seconds=total_time))  # This is used for the slider steps
 
-        self.total_time_lbl.setText(total_time_to_minute[:total_time_to_minute.index('.')])
+        lyric_line = self.lyrics.get_line(seconds_to_minute_format)
+        self.display_lyric(lyric_line)
 
-        if '.' in seconds_to_minute_format:
-            self.current_time_lbl.setText(seconds_to_minute_format[:seconds_to_minute_format.index('.')])
+        self.total_time_lbl.setText(total_time_to_minute)
+
+        if '.' in str(seconds_to_minute_format):
+            self.current_time_lbl.setText(str(seconds_to_minute_format))
