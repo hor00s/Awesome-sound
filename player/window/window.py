@@ -11,8 +11,6 @@ from actions.constants import (
     FPS,
     LOGO,
     TITLE,
-    WIDTH,
-    HEIGHT,
     VERISONS,
     PLAYERUI,
     NEXT_BTN,
@@ -50,7 +48,7 @@ class MainWindow(QMainWindow):
         uic.loadUi(PLAYERUI, self)
         self.setWindowTitle(f"{TITLE} {VERISONS[-1]}")
         self.setWindowIcon(QtGui.QIcon(LOGO))
-        self.setFixedSize(WIDTH, HEIGHT)
+        self.setFixedSize(self.width(), self.height())
 
         self.player = MusicPlayer(Song(SONGSFILE))
 
@@ -235,5 +233,7 @@ class MainWindow(QMainWindow):
 
         self.total_time_lbl.setText(total_time_to_minute)
 
-        if '.' in str(seconds_to_minute_format):
-            self.current_time_lbl.setText(str(seconds_to_minute_format))
+        current_time_text = str(seconds_to_minute_format)
+        if '.' in current_time_text:
+            current_time_text = current_time_text[:current_time_text.index('.') + 3]
+            self.current_time_lbl.setText(current_time_text)

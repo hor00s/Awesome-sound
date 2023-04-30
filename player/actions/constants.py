@@ -26,8 +26,6 @@ FPS:          FpsLike    = lambda frame_rate: int(1000 / frame_rate)
 LYRICS_DIR:   str        = lyrics_dir(BASE_DIR)
 THEMECLR:     str        = 'rgb(0,206,209)'
 TITLE:        str        = 'Awesome sound'
-HEIGHT:       int        = 473
-WIDTH:        int        = 539
 VERISONS:     tuple      = (
     'v.0.5',
     'v.0.6',
