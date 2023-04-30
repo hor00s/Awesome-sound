@@ -225,7 +225,6 @@
    <zorder>music_prog_bar</zorder>
    <zorder>volume_bar</zorder>
    <zorder>prev_btn</zorder>
-   <zorder>current_playing_lbl</zorder>
    <zorder>music_container</zorder>
    <zorder>play_btn</zorder>
    <zorder>next_btn</zorder>
@@ -233,6 +232,7 @@
    <zorder>current_time_lbl</zorder>
    <zorder>total_time_lbl</zorder>
    <zorder>lyrics_lbl</zorder>
+   <zorder>current_playing_lbl</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
