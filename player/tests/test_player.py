@@ -1,8 +1,6 @@
-import sys
 import unittest
-sys.path.append('.')
-from comps.song import Song
-from comps.musicplayer import (
+from comps import (
+    Disk,
     PlayerError,
     MusicPlayer,
 )
@@ -10,7 +8,7 @@ from comps.musicplayer import (
 
 class TestPlayer(unittest.TestCase):
     def setUp(self) -> None:
-        self.player = MusicPlayer(Song(['1', '2']))
+        self.player = MusicPlayer(Disk(['1', '2']))
 
     def tearDown(self) -> None:
         self.player._is_playing = True
@@ -25,13 +23,14 @@ class TestPlayer(unittest.TestCase):
             self.player.set_volume(30)
         except PlayerError as e:
             self.player.__class__.__name__
-            self.fail(f"{self.player.__class__.__name__}.set_volume raised an unexpexted error: {e}")
+            err = f"{self.player.__class__.__name__}.set_volume raised an unexpexted error: {e}"
+            self.fail(err)
 
     def test_play_pause(self):
         for _ in range(20):
-            self.player.play()
+            self.player.playing()
             self.assertFalse(self.player)
-            self.player.play()
+            self.player.playing()
             self.assertTrue(self.player)
 
-    def test_set_timestamp(self): ... # TODO: Later
+    def test_set_timestamp(self): ...  # TODO: Later

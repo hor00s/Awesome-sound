@@ -20,6 +20,7 @@ What waits for you across the line
 You thought you had me
 """
 
+
 class TestRenderer(unittest.TestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)

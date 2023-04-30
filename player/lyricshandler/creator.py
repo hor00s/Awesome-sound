@@ -1,12 +1,18 @@
 import os
-from comps.song import Song
+from comps import Disk
 from .constants import EXTENSION
+
+
+__all__ = (
+    'Creator',
+)
 
 
 class Creator:
     EXTENSION = EXTENSION
-    def __init__(self, song: Song, lyrics_dir: str) -> None:
-        self.song = song.without_extension()
+
+    def __init__(self, song: Disk, lyrics_dir: str) -> None:
+        self.song = song.title()
         self.lyrics_dir = lyrics_dir
 
     def manual_save(self, path: str):

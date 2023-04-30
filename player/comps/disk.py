@@ -1,23 +1,19 @@
 import os
-
-class SingleToneSong(type):
-    """Song class implements the SingleTon patter, which means that
-    every time it's initiated it will return the same object,
-    not a new one 
-    """    
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            instance = super().__call__(*args, **kwargs)
-            cls._instances[cls] = instance
-        return cls._instances[cls]
+from typing import Iterable
 
 
-class Song(metaclass=SingleToneSong):
-    def __init__(self, songs_list: list) -> None:
+__all__ = (
+    'Disk',
+)
+
+
+class Disk:
+    """A `Disk` object stores and handles a sequenes of songs
+    """
+    def __init__(self, songs_list: Iterable[str]) -> None:
         """ The `self._playing_index` MUST always be aware of changes.
             This MUST EXPLICITLY return anything from self._songs ALWAYS
-        """        
+        """
         self._songs = songs_list
         self._playing_index = 0
 
@@ -27,32 +23,32 @@ class Song(metaclass=SingleToneSong):
     def __repr__(self) -> str:
         return self._songs[self._playing_index]
 
-    def __getitem__(self, i):
+    def __getitem__(self, i) -> str:
         return self._songs[i]
 
-    def __contains__(self, __o):
+    def __contains__(self, __o) -> bool:
         return __o in self._songs
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._songs)
 
     @property
-    def song_index(self):
+    def song_index(self) -> int:
         return self._playing_index
 
     @property
-    def current_song(self) -> str:
-        return self._songs[self._playing_index]
+    def song_mp3(self) -> str:
+        return self[self._playing_index]
 
     @property
-    def current_song_as_file(self) -> str:
+    def song(self) -> str:
         """Return the full path of the current song
 
         :return str:
-        """        
-        return os.path.join('songs', self.current_song)
+        """
+        return os.path.join('songs', self.song_mp3)
 
-    def _reset_song_index(self, direction: str) -> int:
+    def _move_song_index(self, direction: str) -> int:
         """When the `next` or `previous` song is out
         of list's range this function restarts
         self._playing_index accordingly
@@ -61,15 +57,15 @@ class Song(metaclass=SingleToneSong):
 
         :param str direction: `up` for next / `down` for previous
         :return int: Properly handled self._playing_index
-        """        
+        """
         if direction == 'up':
-            if self._playing_index + 1 > len(self._songs):
+            if self._playing_index + 1 > len(self):
                 self._playing_index = 0
                 return self._playing_index
 
         elif direction == 'down':
             if self._playing_index < 0:
-                self._playing_index = len(self._songs) - 1
+                self._playing_index = len(self) - 1
                 return self._playing_index
 
         return self._playing_index
@@ -78,25 +74,43 @@ class Song(metaclass=SingleToneSong):
         """Go to next song
 
         :return str: Song at the next index of `self._songs`
-        """        
+        """
         self._playing_index += 1
-        return self._songs[self._reset_song_index('up')]
+        return self[self._move_song_index('up')]
 
     def prev(self) -> str:
         """Go to previous song
 
         :return str: Song at the previous index of `self._songs`
-        """  
+        """
         self._playing_index -= 1
-        return self._songs[self._reset_song_index('down')]
+        return self._songs[self._move_song_index('down')]
 
     def user_pick(self, index: int) -> str:
+        """Track the song the user picked and point self._playing_index there
+
+        :param index: The index of the song the user picked
+        :type index: int
+        :raises IndexError: In case the index is greater that the `Disk`
+        :return: The song the user picked as `.mp3`
+        :rtype: str
+        """
         if index < 0:
-            raise IndexError("Songl list index cannot be negative")
+            raise IndexError("Disk index cannot be negative")
         self._playing_index = index
         return self._songs[self._playing_index]
 
-    def without_extension(self):
-        reverse = self.current_song[::-1]
-        # ext.sgsdgsd
+    def title(self) -> str:
+        """Gives the title of the song without the extension
+        ```
+            >> self.song_mp3
+            'Sjaak - Trompetisto (Official Music Video).mp3'
+            >> self.title()
+            'Sjaak - Trompetisto (Official Music Video)'
+        ```
+
+        :return: The title
+        :rtype: str
+        """
+        reverse = self.song_mp3[::-1]
         return reverse[reverse.index('.') + 1:][::-1]

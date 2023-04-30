@@ -1,20 +1,27 @@
-from .song import Song
+from comps.disk import Disk
+
+
+__all__ = (
+    'PlayerError',
+    'MusicPlayer',
+)
 
 
 class PlayerError(Exception): ...
 
 
 class MusicPlayer:
-    def __init__(self, song: Song) -> None:
-        self.song = song
+    def __init__(self, disk: Disk) -> None:
+        self.disk = disk
         self._is_playing = True
         self._volume = self.set_volume(100)
 
     def __str__(self) -> str:
-        return f"<{self.__class__.__name__}(Playing - {self.song.current_song} - {'Alive' if self._is_playing else 'Not alive'})>"
+        state = 'Alive' if self._is_playing else 'Not alive'
+        return f"<{self.__class__.__name__}(Playing - {self.disk.song_mp3} - {state})>"
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(Playing - {self.song.current_song} - {'Alive' if self._is_playing else 'Not alive'})>"
+        return str(self)
 
     def __bool__(self):
         return self._is_playing
@@ -33,13 +40,13 @@ class MusicPlayer:
         :param int volume: The volume to set to
         :raises PlayerError: If the volume is more that 100 or less than 0
         :return int: Current volume
-        """        
+        """
         if not 0 <= volume <= 100:
             raise PlayerError(f"Volume must remain between 0 - 100. It cannot be {volume}")
         self._volume = volume
         return self._volume
 
-    def play(self) -> bool:
+    def playing(self) -> bool:
         """Reverse the _is_playing value
 
         :return bool: Current state of _is_playing

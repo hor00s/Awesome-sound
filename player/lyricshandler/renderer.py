@@ -2,8 +2,15 @@ import srt
 import datetime
 from .constants import EXTENSION
 
+
+__all__ = (
+    'Renderer',
+)
+
+
 class Renderer:
     EXTENSION = EXTENSION
+
     def __init__(self, lyrics_file: str) -> None:
         self._lyrics_file = lyrics_file
         self._lyrics = tuple(srt.parse(self._set_lyrics()))
