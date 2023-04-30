@@ -42,7 +42,6 @@ class TestPlayer(unittest.TestCase):
         self.assertEqual(self.song.prev(), self.songs[-1])
         self.assertEqual(self.song._playing_index, len(self.songs)-1)
 
-
     def test_user_pick(self):
         self.assertEqual(self.song.user_pick(2), self.songs[2])
         self.assertEqual(self.song._playing_index, 2)
