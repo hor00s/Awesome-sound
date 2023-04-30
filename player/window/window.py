@@ -83,6 +83,10 @@ class MainWindow(QMainWindow):
         self.next_btn.clicked.connect(lambda: self.next_song())
         self.prev_btn.clicked.connect(lambda: self.prev_song())
 
+        self.is_pressed = False
+        self.music_prog_bar.sliderPressed.connect(lambda: self._slider_pressed())
+        self.music_prog_bar.sliderReleased.connect(lambda: self._slider_release())
+
         # Key binds
         self.play_shortcut = QShortcut(QKeySequence(SHORTCUTS['PLAY-PAUSE']), self)
         self.next_shortcut = QShortcut(QKeySequence(SHORTCUTS['NEXT SONG']), self)
@@ -101,15 +105,6 @@ class MainWindow(QMainWindow):
         timer = QTimer(self.total_time_lbl)
         timer.timeout.connect(self.update)
         timer.start(FPS(20))
-
-    def _get_lyrics_file(self):
-        lyrics_file = os.path.join(LYRICS_DIR, self.player.song.without_extension() + Renderer.EXTENSION)
-        if not os.path.exists(lyrics_file):
-            lyrics_file = os.path.join(LYRICS_DIR, 'fake.srt')
-            with open(lyrics_file, mode='w') as f:
-                f.write("1\n00:00:00,000 --> 00:25:00,000\n")
-
-        return lyrics_file
 
     def _load_btns(self):
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
@@ -143,6 +138,23 @@ class MainWindow(QMainWindow):
         self.total_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.volume_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.current_playing_lbl.setWordWrap(True)
+
+    def _get_lyrics_file(self):
+        lyrics_file = os.path.join(LYRICS_DIR, self.player.song.without_extension() + Renderer.EXTENSION)
+        if not os.path.exists(lyrics_file):
+            lyrics_file = os.path.join(LYRICS_DIR, 'fake.srt')
+            with open(lyrics_file, mode='w') as f:
+                f.write("1\n00:00:00,000 --> 00:25:00,000\n")
+
+        return lyrics_file
+
+    def _slider_pressed(self):
+        self.is_pressed = True
+
+    def _slider_release(self):
+        self.is_pressed = False
+        position = self.music_prog_bar.value()
+        self.sound.seek(position / 60)
 
     def _load_lists(self):
         self.music_container = self.findChild(QListWidget, 'music_container')
@@ -216,15 +228,21 @@ class MainWindow(QMainWindow):
     def update(self):
         tag = TinyTag.get(self.player.song.current_song_as_file)
         total_time = tag.duration
-        self.music_prog_bar.setRange(0, int(tag.duration)) # Set the total steps of the slider
+        total_seconds = total_time * 60
+        self.music_prog_bar.setRange(0, total_seconds) # Set the total steps of the slider
 
         # Current time. Use this for the slider update
         current_time = self.sound.time
-        self.helper_update_slider(self.music_prog_bar, int(current_time)) # Update slider's position
+        current_seconds = current_time * 60
+
+        if not self.is_pressed:
+            # When the slider is pressed, stop updating the progres bar automaticaly so we can
+            # set it where it will be released
+            self.helper_update_slider(self.music_prog_bar, current_seconds) # Update slider's position every ms that ellapses
 
         if current_time >= total_time:
             self.next_song()
-        
+
         seconds_to_minute_format = datetime.timedelta(seconds=current_time)
         total_time_to_minute = str(datetime.timedelta(seconds=total_time))  # This is used for the slider steps
 
