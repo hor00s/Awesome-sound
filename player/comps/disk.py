@@ -38,8 +38,10 @@ class Disk:
         return self
 
     def __next__(self) -> str:
-        if self.n <= len(self._songs):
-            return self._songs[self.n]
+        if self.n < len(self._songs):
+            cur = self[self.n]
+            self.n += 1
+            return cur
         else:
             raise StopIteration
 
