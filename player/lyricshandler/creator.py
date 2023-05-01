@@ -15,7 +15,7 @@ class Creator:
         self.song = song.title()
         self.lyrics_dir = lyrics_dir
 
-    def manual_save(self, path: str):
+    def manual_save(self, path: str) -> None:
         with open(path, mode='r') as f:
             content = f.read()
 

@@ -1,4 +1,4 @@
-from pyglet.media.player import Player
+from pyglet.media.player import Player  # type: ignore
 from actions.constants import (
     PAUSE_BTN,
     PLAY_BTN,

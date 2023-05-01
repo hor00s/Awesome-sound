@@ -1,5 +1,6 @@
+from __future__ import annotations
 import os
-from typing import Iterable
+from typing import Tuple
 
 
 __all__ = (
@@ -10,7 +11,7 @@ __all__ = (
 class Disk:
     """A `Disk` object stores and handles a sequenes of songs
     """
-    def __init__(self, songs_list: Iterable[str]) -> None:
+    def __init__(self, songs_list: Tuple[str, ...]) -> None:
         """ The `self._playing_index` MUST always be aware of changes.
             This MUST EXPLICITLY return anything from self._songs ALWAYS
         """
@@ -23,14 +24,24 @@ class Disk:
     def __repr__(self) -> str:
         return self._songs[self._playing_index]
 
-    def __getitem__(self, i) -> str:
+    def __getitem__(self, i: int) -> str:
         return self._songs[i]
 
-    def __contains__(self, __o) -> bool:
+    def __contains__(self, __o: str) -> bool:
         return __o in self._songs
 
     def __len__(self) -> int:
         return len(self._songs)
+
+    def __iter__(self) -> Disk:
+        self.n = 0
+        return self
+
+    def __next__(self) -> str:
+        if self.n <= len(self._songs):
+            return self._songs[self.n]
+        else:
+            raise StopIteration
 
     @property
     def song_index(self) -> int:

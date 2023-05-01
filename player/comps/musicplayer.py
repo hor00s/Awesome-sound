@@ -7,7 +7,8 @@ __all__ = (
 )
 
 
-class PlayerError(Exception): ...
+class PlayerError(Exception):
+    pass
 
 
 class MusicPlayer:
@@ -23,7 +24,7 @@ class MusicPlayer:
     def __repr__(self) -> str:
         return str(self)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self._is_playing
 
     @property
