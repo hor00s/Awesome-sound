@@ -274,8 +274,8 @@ class MainWindow(QMainWindow):
         # total_time_to_minute is used for the slider steps
         total_time_to_minute = str(datetime.timedelta(seconds=total_time))
 
+        self.volume_control()
         lyric_line = self.lyrics.get_line(seconds_to_minute_format)
-
         self.display_lyric(lyric_line)
 
         self.total_time_lbl.setText(total_time_to_minute)
