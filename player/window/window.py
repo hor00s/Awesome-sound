@@ -25,6 +25,7 @@ from actions import (
     PLAYERUI,
     NEXT_BTN,
     PLAY_BTN,
+    MUTE_BTN,
     THEMECLR,
     SONGSLIST,
     SHORTCUTS,
@@ -48,7 +49,8 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super(MainWindow, self).__init__()
         uic.loadUi(PLAYERUI, self)   # type: ignore
-        self.setWindowTitle(f"{TITLE} {VERISONS[-1]}")
+        self.window_title = f"{TITLE} {VERISONS[-1]}"
+        self.setWindowTitle(self.window_title)
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
 
@@ -89,6 +91,7 @@ class MainWindow(QMainWindow):
         self.volume_bar.valueChanged.connect(lambda: self.volume_control())
         self.next_btn.clicked.connect(lambda: self.next_song())
         self.prev_btn.clicked.connect(lambda: self.prev_song())
+        self.mute_btn.clicked.connect(lambda: self.mute_player())
 
         self.is_pressed = False
         self.song_slider.sliderPressed.connect(lambda: self._slider_pressed())
@@ -98,12 +101,14 @@ class MainWindow(QMainWindow):
         self.play_shortcut = QShortcut(QKeySequence(SHORTCUTS['PLAY-PAUSE']), self)
         self.next_shortcut = QShortcut(QKeySequence(SHORTCUTS['NEXT SONG']), self)
         self.prev_shortcut = QShortcut(QKeySequence(SHORTCUTS['PREV SONG']), self)
+        self.mute_shortcut = QShortcut(QKeySequence(SHORTCUTS['MUTE']), self)
 
         self.play_shortcut.activated.connect(  # type: ignore
             lambda: play_btn_switcher(self.player, self.play_btn, self.sound)
         )
         self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
         self.prev_shortcut.activated.connect(lambda: self.prev_song())  # type: ignore
+        self.mute_shortcut.activated.connect(lambda: self.mute_player())
 
         # Menu actions
         self.actionChoose_file.triggered.connect(lambda: self.save_lyric_file())
@@ -119,14 +124,17 @@ class MainWindow(QMainWindow):
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
         self.next_btn = self.findChild(QPushButton, 'next_btn')
         self.play_btn = self.findChild(QPushButton, 'play_btn')
+        self.mute_btn = self.findChild(QPushButton, 'mute_btn')
 
         self.prev_btn.setIcon(QtGui.QIcon(PREVIOUS_BTN))
         self.next_btn.setIcon(QtGui.QIcon(NEXT_BTN))
         self.play_btn.setIcon(QtGui.QIcon(PLAY_BTN))
+        self.mute_btn.setIcon(QtGui.QIcon(MUTE_BTN))
 
         self.prev_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.next_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.play_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.mute_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
 
     def _load_sliders(self) -> None:
         self.song_slider = self.findChild(QSlider, 'music_prog_bar')
@@ -184,6 +192,14 @@ class MainWindow(QMainWindow):
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(0)
 
+    def mute_player(self):
+        if self.player.is_muted:
+            self.player.unmute()
+            self.setWindowTitle(self.window_title)
+        else:
+            self.player.mute()
+            self.setWindowTitle(self.window_title + " MUTED")
+
     def save_lyric_file(self) -> None:
         try:
             path = self._file_explorer(('srt',))
@@ -236,7 +252,12 @@ class MainWindow(QMainWindow):
         self.update_song()
 
     def volume_control(self) -> None:
-        self.player.set_volume(self.volume_bar.value())
+        if self.player.is_muted:
+            self.player.set_volume(0)
+            self.sound.volume = 0
+        else:
+            self.player.set_volume(self.volume_bar.value())
+
         self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
         self.sound.volume = self.player.volume / 100
         #                                      ^^^^^

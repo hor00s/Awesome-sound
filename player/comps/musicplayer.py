@@ -14,6 +14,7 @@ class PlayerError(Exception):
 class MusicPlayer:
     def __init__(self, disk: Disk) -> None:
         self.disk = disk
+        self._is_muted = False
         self._is_playing = True
         self._volume = self.set_volume(100)
 
@@ -28,12 +29,22 @@ class MusicPlayer:
         return self._is_playing
 
     @property
+    def is_muted(self):
+        return self._is_muted
+
+    @property
     def volume(self) -> int:
         return self._volume
 
     @property
     def is_playing(self) -> bool:
         return self._is_playing
+
+    def mute(self):
+        self._is_muted = True
+
+    def unmute(self):
+        self._is_muted = False
 
     def set_volume(self, volume: int) -> int:
         """Volume handler of the player

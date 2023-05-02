@@ -224,6 +224,22 @@
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QPushButton" name="mute_btn">
+    <property name="geometry">
+     <rect>
+      <x>300</x>
+      <y>470</y>
+      <width>41</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
    <zorder>bg_lbl</zorder>
    <zorder>music_prog_bar</zorder>
    <zorder>volume_bar</zorder>
@@ -236,6 +252,7 @@
    <zorder>total_time_lbl</zorder>
    <zorder>lyrics_lbl</zorder>
    <zorder>current_playing_lbl</zorder>
+   <zorder>mute_btn</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -276,7 +293,7 @@
   </action>
   <action name="actionChoose_file">
    <property name="text">
-    <string>Choose file</string>
+    <string>Delay</string>
    </property>
   </action>
   <action name="actionCreate">

@@ -14,6 +14,7 @@ __all__ = (
     'PAUSE_BTN',
     'PLAY_BTN',
     'NEXT_BTN',
+    'MUTE_BTN',
     'BACKGROUND',
     'LOGO',
     'PLAYERUI',
@@ -43,6 +44,7 @@ PREVIOUS_BTN: str = os.path.join('images', 'previous-button.png')
 PAUSE_BTN: str = os.path.join('images', 'pause-button.png')
 PLAY_BTN: str = os.path.join('images', 'play-button.png')
 NEXT_BTN: str = os.path.join('images', 'next-button.png')
+MUTE_BTN: str = os.path.join('images', 'mute-button.png')
 BACKGROUND: str = os.path.join('images', 'background.png')
 LOGO: str = os.path.join('images', 'applogo.png')
 PLAYERUI: str = os.path.join('window', 'player.ui')
@@ -60,4 +62,5 @@ SHORTCUTS: Dict[str, str] = {
     'PLAY-PAUSE': 'Space',
     'PREV SONG': '-',
     'NEXT SONG': '+',
+    'MUTE': 'm',
 }
