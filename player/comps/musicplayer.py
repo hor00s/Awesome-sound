@@ -14,7 +14,7 @@ class PlayerError(Exception):
 class MusicPlayer:
     def __init__(self, disk: Disk) -> None:
         self.disk = disk
-        self._is_muted = config.get('is_muted')
+        self._is_muted = bool(config.get('is_muted'))
         self._is_playing = True
         self._volume = self.set_volume()
 
@@ -29,7 +29,7 @@ class MusicPlayer:
         return self._is_playing
 
     @property
-    def is_muted(self):
+    def is_muted(self) -> bool:
         return self._is_muted
 
     @property
@@ -40,11 +40,11 @@ class MusicPlayer:
     def is_playing(self) -> bool:
         return self._is_playing
 
-    def mute(self):
+    def mute(self) -> None:
         config.edit('is_muted', True)
         self._is_muted = config.get('is_muted')
 
-    def unmute(self):
+    def unmute(self) -> None:
         config.edit('is_muted', False)
         self._is_muted = config.get('is_muted')
 

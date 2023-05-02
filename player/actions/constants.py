@@ -70,8 +70,10 @@ SHORTCUTS: Dict[str, str] = {
 
 CONFIG = {
     'volume': 100,
-    'is_muted': False
+    'is_muted': False,
 }
 
+
 config = Handler(CONFIG_FILE, CONFIG)
-config.init()
+if not os.path.exists(CONFIG_FILE):
+    config.init()

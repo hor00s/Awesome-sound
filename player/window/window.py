@@ -43,6 +43,7 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QPushButton,
     QFileDialog,
+    QInputDialog,
 )
 
 
@@ -104,12 +105,13 @@ class MainWindow(QMainWindow):
         self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())  # type: ignore
         self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
         self.prev_shortcut.activated.connect(lambda: self.prev_song())  # type: ignore
-        self.mute_shortcut.activated.connect(lambda: self.mute_player())
+        self.mute_shortcut.activated.connect(lambda: self.mute_player())  # type: ignore
 
         # Menu actions
         self.actionChoose_file.triggered.connect(lambda: self.save_lyric_file())
         self.actionCreate.triggered.connect(lambda: print('create'))
         self.actionShortcuts.triggered.connect(lambda: print('shortcuts'))
+        self.actionDelay.triggered.connect(lambda: self.set_lyrics_delay())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -188,13 +190,13 @@ class MainWindow(QMainWindow):
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(0)
 
-    def set_title(self):
+    def set_title(self) -> None:
         if self.player.is_muted:
             self.setWindowTitle(self.window_title + " MUTED")
         else:
             self.setWindowTitle(self.window_title)
 
-    def mute_player(self):
+    def mute_player(self) -> None:
         if self.player.is_muted:
             self.player.unmute()
         else:
@@ -239,6 +241,18 @@ class MainWindow(QMainWindow):
         self.sound.queue(self.current_song)
 
         self.sound.play() if self.player else self.sound.pause()
+
+    def set_lyrics_delay(self) -> None:
+        delay, _ = QInputDialog.getText(self, 'Lyrics delay', 'Set your lyrics delay')
+        key = f"{self.player.disk.song}.delay"
+        try:
+            if key in config:
+                config.edit(key, float(delay))
+            else:
+                config.add(key, float(delay))
+        except ValueError:
+            # User passed non numeric value
+            pass
 
     def next_song(self) -> None:
         self.player.disk.next()
@@ -306,7 +320,8 @@ class MainWindow(QMainWindow):
         elif self.player.is_muted:
             self.sound.volume = 0
 
-        lyric_line = self.lyrics.get_line(seconds_to_minute_format)
+        delay_key = f"{self.player.disk.song}.delay"
+        lyric_line = self.lyrics.get_line(seconds_to_minute_format, config.get(delay_key))
         self.display_lyric(lyric_line)
 
         self.total_time_lbl.setText(total_time_to_minute)

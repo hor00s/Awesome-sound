@@ -280,6 +280,7 @@
     </property>
     <addaction name="actionChoose_file"/>
     <addaction name="actionCreate"/>
+    <addaction name="actionDelay"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -293,12 +294,17 @@
   </action>
   <action name="actionChoose_file">
    <property name="text">
-    <string>Delay</string>
+    <string>Choose file</string>
    </property>
   </action>
   <action name="actionCreate">
    <property name="text">
     <string>Create</string>
+   </property>
+  </action>
+  <action name="actionDelay">
+   <property name="text">
+    <string>Delay</string>
    </property>
   </action>
  </widget>

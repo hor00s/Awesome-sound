@@ -16,7 +16,8 @@ __all__ = [
 ]
 
 
-class HandlerError(Exception): ...
+class HandlerError(Exception):
+    pass
 
 
 class Handler:
@@ -75,7 +76,7 @@ class Handler:
 
     def _write(self, data: Any) -> None:
         with open(self.file, mode='w') as f:
-            json.dump(data, f, indent=4)
+            json.dump(data, f, indent=4, ensure_ascii=False)
 
     def _read(self) -> Any:
         with open(self.file, mode='r') as f:
