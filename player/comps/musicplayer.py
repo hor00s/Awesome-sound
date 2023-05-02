@@ -1,5 +1,5 @@
 from comps.disk import Disk
-
+from actions import config
 
 __all__ = (
     'PlayerError',
@@ -14,9 +14,9 @@ class PlayerError(Exception):
 class MusicPlayer:
     def __init__(self, disk: Disk) -> None:
         self.disk = disk
-        self._is_muted = False
+        self._is_muted = config.get('is_muted')
         self._is_playing = True
-        self._volume = self.set_volume(100)
+        self._volume = self.set_volume()
 
     def __str__(self) -> str:
         state = 'Alive' if self._is_playing else 'Not alive'
@@ -41,21 +41,26 @@ class MusicPlayer:
         return self._is_playing
 
     def mute(self):
-        self._is_muted = True
+        config.edit('is_muted', True)
+        self._is_muted = config.get('is_muted')
 
     def unmute(self):
-        self._is_muted = False
+        config.edit('is_muted', False)
+        self._is_muted = config.get('is_muted')
 
-    def set_volume(self, volume: int) -> int:
+    def set_volume(self) -> int:
         """Volume handler of the player
 
         :param int volume: The volume to set to
         :raises PlayerError: If the volume is more that 100 or less than 0
         :return int: Current volume
         """
+        volume = config.get('volume')
         if not 0 <= volume <= 100:
             raise PlayerError(f"Volume must remain between 0 - 100. It cannot be {volume}")
+
         self._volume = volume
+
         return self._volume
 
     def playing(self) -> bool:

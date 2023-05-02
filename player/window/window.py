@@ -23,6 +23,7 @@ from actions import (
     TITLE,
     VERISONS,
     PLAYERUI,
+    PAUSE_BTN,
     NEXT_BTN,
     PLAY_BTN,
     MUTE_BTN,
@@ -32,7 +33,7 @@ from actions import (
     LYRICS_DIR,
     BACKGROUND,
     PREVIOUS_BTN,
-    play_btn_switcher,
+    config,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -50,11 +51,12 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         uic.loadUi(PLAYERUI, self)   # type: ignore
         self.window_title = f"{TITLE} {VERISONS[-1]}"
-        self.setWindowTitle(self.window_title)
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
 
         self.player = MusicPlayer(Disk(SONGSLIST))
+
+        self.set_title()
 
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.disk.song)
@@ -70,9 +72,7 @@ class MainWindow(QMainWindow):
         self._load_btns()
 
         # Set UI
-        self.play_btn.setIcon(QtGui.QIcon(
-            play_btn_switcher(self.player, self.play_btn, self.sound))
-        )
+        self.play_btn.setIcon(QtGui.QIcon(self.play_btn_switcher()))
         self.current_playing_lbl.setText(self.player.disk.title())
         self.music_container.setCurrentRow(self.player.disk.song_index)
         self.volume_lbl.setText(f"Vol: {self.player.volume}")
@@ -82,9 +82,7 @@ class MainWindow(QMainWindow):
         self._fill_list_widget()
 
         # Set commands
-        self.play_btn.clicked.connect(
-            lambda: play_btn_switcher(self.player, self.play_btn, self.sound)
-        )
+        self.play_btn.clicked.connect(lambda: self.play_btn_switcher())
         self.music_container.itemDoubleClicked.connect(
             lambda: self.manual_pick(self.music_container)
         )
@@ -103,9 +101,7 @@ class MainWindow(QMainWindow):
         self.prev_shortcut = QShortcut(QKeySequence(SHORTCUTS['PREV SONG']), self)
         self.mute_shortcut = QShortcut(QKeySequence(SHORTCUTS['MUTE']), self)
 
-        self.play_shortcut.activated.connect(  # type: ignore
-            lambda: play_btn_switcher(self.player, self.play_btn, self.sound)
-        )
+        self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())  # type: ignore
         self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
         self.prev_shortcut.activated.connect(lambda: self.prev_song())  # type: ignore
         self.mute_shortcut.activated.connect(lambda: self.mute_player())
@@ -192,13 +188,18 @@ class MainWindow(QMainWindow):
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(0)
 
+    def set_title(self):
+        if self.player.is_muted:
+            self.setWindowTitle(self.window_title + " MUTED")
+        else:
+            self.setWindowTitle(self.window_title)
+
     def mute_player(self):
         if self.player.is_muted:
             self.player.unmute()
-            self.setWindowTitle(self.window_title)
         else:
             self.player.mute()
-            self.setWindowTitle(self.window_title + " MUTED")
+        self.set_title()
 
     def save_lyric_file(self) -> None:
         try:
@@ -251,12 +252,17 @@ class MainWindow(QMainWindow):
         self.player.disk.user_pick(music_container.currentRow())
         self.update_song()
 
+    def play_btn_switcher(self) -> str:
+        self.player.playing()
+        img = PAUSE_BTN if self.player else PLAY_BTN
+
+        self.sound.play() if self.player else self.sound.pause()
+        self.play_btn.setIcon(QtGui.QIcon(img))
+        return img
+
     def volume_control(self) -> None:
-        if self.player.is_muted:
-            self.player.set_volume(0)
-            self.sound.volume = 0
-        else:
-            self.player.set_volume(self.volume_bar.value())
+        config.edit('volume', self.volume_bar.value())
+        self.player.set_volume()
 
         self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
         self.sound.volume = self.player.volume / 100
@@ -295,7 +301,11 @@ class MainWindow(QMainWindow):
         # total_time_to_minute is used for the slider steps
         total_time_to_minute = str(datetime.timedelta(seconds=total_time))
 
-        self.volume_control()
+        if not self.player.is_muted:
+            self.volume_control()
+        elif self.player.is_muted:
+            self.sound.volume = 0
+
         lyric_line = self.lyrics.get_line(seconds_to_minute_format)
         self.display_lyric(lyric_line)
 

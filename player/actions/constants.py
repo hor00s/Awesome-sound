@@ -1,4 +1,5 @@
 import os
+from jsonwrapper import Handler
 from pathlib import Path
 from typing import (
     Callable,
@@ -25,6 +26,7 @@ __all__ = (
     'VERISONS',
     'VERISONS',
     'SHORTCUTS',
+    'config',
 )
 
 
@@ -48,6 +50,7 @@ MUTE_BTN: str = os.path.join('images', 'mute-button.png')
 BACKGROUND: str = os.path.join('images', 'background.png')
 LOGO: str = os.path.join('images', 'applogo.png')
 PLAYERUI: str = os.path.join('window', 'player.ui')
+CONFIG_FILE = os.path.join(BASE_DIR, '.config.json')
 FPS: FpsLike = lambda frame_rate: int(1000 / frame_rate)
 LYRICS_DIR: str = lyrics_dir(BASE_DIR)
 THEMECLR: str = 'rgb(0,206,209)'
@@ -64,3 +67,11 @@ SHORTCUTS: Dict[str, str] = {
     'NEXT SONG': '+',
     'MUTE': 'm',
 }
+
+CONFIG = {
+    'volume': 100,
+    'is_muted': False
+}
+
+config = Handler(CONFIG_FILE, CONFIG)
+config.init()
