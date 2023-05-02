@@ -1,6 +1,5 @@
 import srt  # type: ignore
 import datetime
-from copy import copy
 from typing import Union
 from .constants import EXTENSION
 
@@ -36,23 +35,19 @@ class Renderer:
         # This does the exact same as `lyrics.get_line` but it turns
         # out, this implementation of binary search is less efficient that
         # the linear solution
-        lyrics = copy(self._lyrics)
+        first = 0
+        last = len(self._lyrics)
 
-        mid = lyrics[len(lyrics) // 2]
+        while first <= last:
+            midpoint = (first + last) // 2
 
-        while len(lyrics):
-            mid = lyrics[len(lyrics) // 2]
-            if len(lyrics) == 1 and (not mid.start <= current_timestamp < mid.end):
-                # In case the value we're looking is missing
-                return None
+            if self._lyrics[midpoint].start <= current_timestamp < self._lyrics[midpoint].end:
+                return str(self._lyrics[midpoint].content)
 
-            elif mid.start <= current_timestamp < mid.end:
-                return str(mid.content)
-            elif mid.start <= current_timestamp:
-                lyrics = lyrics[len(lyrics) // 2:]
-                mid = lyrics[len(lyrics) // 2]
-            elif mid.end > current_timestamp:
-                lyrics = lyrics[:len(lyrics) // 2]
-                mid = lyrics[len(lyrics) // 2]
+            elif self._lyrics[midpoint].start < current_timestamp:
+                first = midpoint + 1
+
+            elif self._lyrics[midpoint].end > current_timestamp:
+                last -= 1
 
         return None
