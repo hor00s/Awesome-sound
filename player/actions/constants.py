@@ -71,6 +71,7 @@ SHORTCUTS: Dict[str, str] = {
 CONFIG = {
     'volume': 100,
     'is_muted': False,
+    'last_song': {},
 }
 
 

@@ -94,7 +94,13 @@ class MainWindow(QMainWindow):
 
         self.is_pressed = False
         self.song_slider.sliderPressed.connect(lambda: self._slider_pressed())
-        self.song_slider.sliderReleased.connect(lambda: self._slider_release())
+        self.song_slider.sliderReleased.connect(
+            lambda: self.move_song(self.song_slider.value() / 60)
+        )
+
+        last_song = config.get('last_song')
+        if last_song:
+            self.move_song(last_song['timestamp'])
 
         # Key binds
         self.play_shortcut = QShortcut(QKeySequence(SHORTCUTS['PLAY-PAUSE']), self)
@@ -117,6 +123,10 @@ class MainWindow(QMainWindow):
         timer = QTimer(self.total_time_lbl)
         timer.timeout.connect(self.update)  # type: ignore
         timer.start(FPS(20))
+
+    def closeEvent(self, event):
+        timestamp = float(f"{self.sound.time:.2f}")
+        config.edit('last_song', {'song': self.player.disk.song_mp3, 'timestamp': timestamp})
 
     def _load_btns(self) -> None:
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
@@ -171,10 +181,9 @@ class MainWindow(QMainWindow):
     def _slider_pressed(self) -> None:
         self.is_pressed = True
 
-    def _slider_release(self) -> None:
+    def move_song(self, seconds: int) -> None:
         self.is_pressed = False
-        position = self.song_slider.value()
-        self.sound.seek(position / 60)
+        self.sound.seek(seconds)
 
     def _load_lists(self) -> None:
         self.music_container = self.findChild(QListWidget, 'music_container')
@@ -188,7 +197,7 @@ class MainWindow(QMainWindow):
     def _fill_list_widget(self) -> None:
         for song in self.player.disk:
             self.music_container.addItem(song)
-        self.music_container.setCurrentRow(0)
+        self.music_container.setCurrentRow(self.player.disk.song_index)
 
     def set_title(self) -> None:
         if self.player.is_muted:

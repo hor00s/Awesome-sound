@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from actions import config
 from typing import Tuple
 
 
@@ -17,6 +18,10 @@ class Disk:
         """
         self._songs = songs_list
         self._playing_index = 0
+
+        if config.get('last_song'):
+            last_song = config.get('last_song')['song']
+            self._playing_index = self._songs.index(last_song)
 
     def __str__(self) -> str:
         return f"<Song('{self._songs[self._playing_index]}')>"
