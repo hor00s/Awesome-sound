@@ -3,3 +3,4 @@ venv
 **__pycache__/
 lyrics
 .config.json
+player/jsonwrapper/testconfig.json

@@ -55,12 +55,16 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
 
-        self.player = MusicPlayer(Disk(SONGSLIST))
+        last_song = config.get('last_song')
+        if last_song:
+            self.player = MusicPlayer(Disk(SONGSLIST, last_song['song']))
+        else:
+            self.player = MusicPlayer(Disk(SONGSLIST))
 
         self.set_title()
 
         self.sound = pyglet.media.Player()
-        self.current_song = pyglet.media.load(self.player.disk.song)
+        self.current_song = pyglet.media.load(self.player.disk.song_path)
 
         self.lyrics = Renderer(self._get_lyrics_file())
 
@@ -243,7 +247,7 @@ class MainWindow(QMainWindow):
         self.music_container.setCurrentRow(self.player.disk.song_index)
 
         self.sound = pyglet.media.Player()
-        self.current_song = pyglet.media.load(self.player.disk.song)
+        self.current_song = pyglet.media.load(self.player.disk.song_path)
 
         self.lyrics = Renderer(self._get_lyrics_file())
 
@@ -253,7 +257,7 @@ class MainWindow(QMainWindow):
 
     def set_lyrics_delay(self) -> None:
         delay, _ = QInputDialog.getText(self, 'Lyrics delay', 'Set your lyrics delay')
-        key = f"{self.player.disk.song}.delay"
+        key = f"{self.player.disk.song_path}.delay"
         try:
             if key in config:
                 config.edit(key, float(delay))
@@ -303,7 +307,7 @@ class MainWindow(QMainWindow):
         slider.repaint()
 
     def update(self) -> None:  # type: ignore
-        tag = TinyTag.get(self.player.disk.song)
+        tag = TinyTag.get(self.player.disk.song_path)
         total_time = tag.duration
         total_seconds = total_time * 60
         self.song_slider.setRange(0, total_seconds)  # Set the total steps of the slider
@@ -329,7 +333,7 @@ class MainWindow(QMainWindow):
         elif self.player.is_muted:
             self.sound.volume = 0
 
-        delay_key = f"{self.player.disk.song}.delay"
+        delay_key = f"{self.player.disk.song_path}.delay"
         lyric_line = self.lyrics.get_line(seconds_to_minute_format, config.get(delay_key))
         self.display_lyric(lyric_line)
 

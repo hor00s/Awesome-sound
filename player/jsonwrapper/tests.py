@@ -1,7 +1,7 @@
 import os
 import random
 import unittest
-from handler import Handler, HandlerError  # type: ignore
+from .handler import Handler, HandlerError  # type: ignore
 from pathlib import Path
 
 BASE_DIR = f'{os.sep}'.join(__file__.split(os.sep)[:-1])

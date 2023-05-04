@@ -1,7 +1,9 @@
 from __future__ import annotations
 import os
-from actions import config
-from typing import Tuple
+from typing import (
+    Tuple,
+    Any,
+)
 
 
 __all__ = (
@@ -12,15 +14,14 @@ __all__ = (
 class Disk:
     """A `Disk` object stores and handles a sequenes of songs
     """
-    def __init__(self, songs_list: Tuple[str, ...]) -> None:
+    def __init__(self, songs_list: Tuple[str, ...], last_song: Any = None) -> None:
         """ The `self._playing_index` MUST always be aware of changes.
             This MUST EXPLICITLY return anything from self._songs ALWAYS
         """
         self._songs = songs_list
         self._playing_index = 0
 
-        if config.get('last_song'):
-            last_song = config.get('last_song')['song']
+        if last_song is not None:
             self._playing_index = self._songs.index(last_song)
 
     def __str__(self) -> str:
@@ -59,7 +60,7 @@ class Disk:
         return self[self._playing_index]
 
     @property
-    def song(self) -> str:
+    def song_path(self) -> str:
         """Return the full path of the current song
 
         :return str:

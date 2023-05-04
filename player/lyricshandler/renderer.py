@@ -1,3 +1,4 @@
+import os
 import srt  # type: ignore
 import datetime
 from typing import Union, Optional
@@ -18,10 +19,10 @@ class Renderer:
         self._index = 0
 
     def _set_lyrics(self) -> str:
-        try:
+        if os.path.exists(self._lyrics_file):
             with open(self._lyrics_file, mode='r') as f:
                 return f.read()
-        except FileNotFoundError:
+        else:
             return self._lyrics_file
 
     def get_line(self, current_timestamp: datetime.timedelta,
