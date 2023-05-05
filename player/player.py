@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from window.window import MainWindow  # type: ignore
+from window.window import MainWindow
 
 
 if __name__ == '__main__':

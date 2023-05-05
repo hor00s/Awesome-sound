@@ -1,6 +1,6 @@
-import os
 import pyglet  # type: ignore
 import datetime
+from comps import MusicPlayer
 from tinytag import TinyTag  # type: ignore
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import QTimer
@@ -8,14 +8,19 @@ from PyQt5 import uic, QtGui
 from typing import (
     Iterable,
     Union,
+    Any,
+)
+from .uiactions import (
+    get_disk,
+    get_lyrics_file,
+    set_lyrics_delay,
+    mute_setup,
+    manual_save_lyrics,
+    make_file_types,
+    edit_volume,
 )
 from lyricshandler import (
-    Creator,
     Renderer,
-)
-from comps import (
-    MusicPlayer,
-    Disk,
 )
 from actions import (
     FPS,
@@ -28,7 +33,6 @@ from actions import (
     PLAY_BTN,
     MUTE_BTN,
     THEMECLR,
-    SONGSLIST,
     SHORTCUTS,
     LYRICS_DIR,
     BACKGROUND,
@@ -55,18 +59,14 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
 
-        last_song = config.get('last_song')
-        if last_song:
-            self.player = MusicPlayer(Disk(SONGSLIST, last_song['song']))
-        else:
-            self.player = MusicPlayer(Disk(SONGSLIST))
+        self.player = MusicPlayer(get_disk(config), config.get('is_muted'), config.get('volume'))
 
         self.set_title()
 
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.disk.song_path)
 
-        self.lyrics = Renderer(self._get_lyrics_file())
+        self.lyrics = Renderer(get_lyrics_file(LYRICS_DIR, self.player, Renderer.EXTENSION))
 
         self.sound.queue(self.current_song)
 
@@ -128,8 +128,12 @@ class MainWindow(QMainWindow):
         timer.timeout.connect(self.update)  # type: ignore
         timer.start(FPS(20))
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: Any) -> None:
+        # When player closes, the current timestamp of
+        # the song (- set_behind seconds) is saved
+        set_behind = 2
         timestamp = float(f"{self.sound.time:.2f}")
+        timestamp -= set_behind
         config.edit('last_song', {'song': self.player.disk.song_mp3, 'timestamp': timestamp})
 
     def _load_btns(self) -> None:
@@ -171,17 +175,6 @@ class MainWindow(QMainWindow):
         self.volume_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.current_playing_lbl.setWordWrap(True)
 
-    def _get_lyrics_file(self) -> str:
-        sound_to_srt = self.player.disk.title() + Renderer.EXTENSION
-        lyrics_file = os.path.join(LYRICS_DIR, sound_to_srt)
-
-        if not os.path.exists(lyrics_file):
-            lyrics_file = os.path.join(LYRICS_DIR, 'fake.srt')
-            with open(lyrics_file, mode='w') as f:
-                f.write("1\n00:00:00,000 --> 00:25:00,000\n")
-
-        return lyrics_file
-
     def _slider_pressed(self) -> None:
         self.is_pressed = True
 
@@ -210,29 +203,19 @@ class MainWindow(QMainWindow):
             self.setWindowTitle(self.window_title)
 
     def mute_player(self) -> None:
-        if self.player.is_muted:
-            self.player.unmute()
-        else:
-            self.player.mute()
+        mute_setup(self.player, config)
         self.set_title()
 
     def save_lyric_file(self) -> None:
         try:
             path = self._file_explorer(('srt',))
-            creator = Creator(self.player.disk, LYRICS_DIR)
-            creator.manual_save(path)
+            manual_save_lyrics(path, self.player, LYRICS_DIR)
         except FileNotFoundError:
             # The file explorer was probably closed
             pass
 
     def _file_explorer(self, file_types: Iterable[str]) -> str:
-        types = ""
-        for type_ in file_types:
-            name = f"{type_.title()} files"
-            ext = f"(*.{type_})"
-            field = f"{name} {ext};;"
-            types += field
-
+        types = make_file_types(file_types)
         path, _ = QFileDialog.getOpenFileName(self, "Choose file", "", types)
         return path
 
@@ -249,7 +232,7 @@ class MainWindow(QMainWindow):
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.disk.song_path)
 
-        self.lyrics = Renderer(self._get_lyrics_file())
+        self.lyrics = Renderer(get_lyrics_file(LYRICS_DIR, self.player, Renderer.EXTENSION))
 
         self.sound.queue(self.current_song)
 
@@ -258,14 +241,7 @@ class MainWindow(QMainWindow):
     def set_lyrics_delay(self) -> None:
         delay, _ = QInputDialog.getText(self, 'Lyrics delay', 'Set your lyrics delay')
         key = f"{self.player.disk.song_path}.delay"
-        try:
-            if key in config:
-                config.edit(key, float(delay))
-            else:
-                config.add(key, float(delay))
-        except ValueError:
-            # User passed non numeric value
-            pass
+        set_lyrics_delay(key, delay, config)
 
     def next_song(self) -> None:
         self.player.disk.next()
@@ -288,12 +264,12 @@ class MainWindow(QMainWindow):
         return img
 
     def volume_control(self) -> None:
-        config.edit('volume', self.volume_bar.value())
-        self.player.set_volume()
+        edit_volume(config, self.player, self.volume_bar.value())
 
         self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
-        self.sound.volume = self.player.volume / 100
-        #                                      ^^^^^
+        if not self.player.is_muted:
+            self.sound.volume = self.player.volume / 100
+        #                                          ^^^^^
         # This is because self.sound.volume accepts
         # values from 0.0 - 1.0 but I want to display 0 - 100
         # Example: displayed = 50; 50 / 100 = 0.5

@@ -1,8 +1,6 @@
 import unittest
 import datetime
-from comps import Disk
 from .renderer import Renderer
-from .creator import Creator
 
 
 lyrics = """
@@ -66,7 +64,7 @@ class TestRendered(unittest.TestCase):
         self.assertEqual(expected, output)
 
         # Timestamp exactly at the end (00:00:16,800 --> 00:00:24,100)
-        expected = None
+        expected = None  # type: ignore
         timestamp = datetime.timedelta(hours=0, minutes=0, seconds=24, milliseconds=100)
         output = self.renderer.get_line(timestamp, delay)
         self.assertIsNone(output)
@@ -92,16 +90,16 @@ class TestRendered(unittest.TestCase):
         self.assertEqual(expected, output)
 
         # Timestamp exactly at the end (00:00:16,800 --> 00:00:24,100)
-        expected = None
+        expected = None  # type: ignore
         timestamp = datetime.timedelta(hours=0, minutes=0, seconds=24 + delay, milliseconds=100)
         output = self.renderer.get_line(timestamp, delay)
         self.assertIsNone(output)
 
 
-class TestCreator(unittest.TestCase):
-    def setUp(self) -> None:
-        self.creator = Creator(Disk(), '')
-        return super().setUp()
+# class TestCreator(unittest.TestCase):
+#     def setUp(self) -> None:
+#         self.creator = Creator(Disk(), '')
+#         return super().setUp()
 
-    def tearDown(self) -> None:
-        return super().tearDown()
+#     def tearDown(self) -> None:
+#         return super().tearDown()

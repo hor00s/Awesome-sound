@@ -5,6 +5,7 @@ from typing import (
     Callable,
     Tuple,
     Dict,
+    Any,
 )
 
 
@@ -26,6 +27,7 @@ __all__ = (
     'VERISONS',
     'VERISONS',
     'SHORTCUTS',
+    'CONFIG',
     'config',
 )
 
@@ -68,11 +70,24 @@ SHORTCUTS: Dict[str, str] = {
     'MUTE': 'm',
 }
 
-CONFIG = {
+CONFIG: Dict[Any, Any] = {
     'volume': 100,
     'is_muted': False,
     'last_song': {},
 }
+
+# CONFIG EXAMPLE
+#  {
+#      "volume": 59,
+#      "is_muted": true,
+#      "last_song": {
+#          "song": "12 Stones - Anthem for the Underdog.mp3",
+#          "timestamp": 8.11
+#      },
+#
+#      -- DELAYS --
+#      "songs/12 Stones - Anthem for the Underdog.mp3.delay": 1.0
+#  }
 
 
 config = Handler(CONFIG_FILE, CONFIG)

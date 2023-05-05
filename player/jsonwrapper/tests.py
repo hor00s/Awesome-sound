@@ -1,7 +1,7 @@
 import os
 import random
 import unittest
-from .handler import Handler, HandlerError  # type: ignore
+from .handler import Handler, HandlerError
 from pathlib import Path
 
 BASE_DIR = f'{os.sep}'.join(__file__.split(os.sep)[:-1])
@@ -19,8 +19,8 @@ class TestHandler(unittest.TestCase):
         self.file.restore_default()
 
     def test_set_attr(self) -> None:
-        self.assertEqual(self.file.c0, 'v0')
-        self.assertEqual(self.file.c1, 'v1')
+        self.assertEqual(self.file.c0, 'v0')  # type: ignore
+        self.assertEqual(self.file.c1, 'v1')  # type: ignore
 
     def test_len(self) -> None:
         self.assertEqual(len(self.file), len(self.file.read()))
@@ -95,7 +95,7 @@ class TestHandler(unittest.TestCase):
         self.assertEqual(self.file.read(), expected)
 
         with self.assertRaises(HandlerError):
-            self.file.update([1, 2, 3])
+            self.file.update([1, 2, 3])  # type: ignore
 
     def test_clear(self) -> None:
         self.file.clear()
@@ -146,4 +146,4 @@ class TestHandler(unittest.TestCase):
         new.purge()
 
         with self.assertRaises(TypeError):
-            self.file | 'this is not allowed'
+            self.file | 'this is not allowed'  # type: ignore

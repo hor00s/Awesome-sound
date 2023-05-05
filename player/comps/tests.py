@@ -33,7 +33,7 @@ class TestDisk(unittest.TestCase):
     def tearDown(self) -> None:
         return super().tearDown()
 
-    def test_song_index(self):
+    def test_song_index(self) -> None:
         index = 2
         disk = Disk(SONGS, SONGS[2])
         self.assertEqual(index, disk.song_index)
@@ -41,18 +41,18 @@ class TestDisk(unittest.TestCase):
         disk = Disk(SONGS)
         self.assertEqual(0, disk.song_index)
 
-    def test_song_mp3(self):
+    def test_song_mp3(self) -> None:
         disk = Disk(SONGS)
         song_mp3 = disk.song_mp3
         self.assertEqual(song_mp3, SONGS[0])
 
-    def test_song_path(self):
+    def test_song_path(self) -> None:
         path = os.path.join('songs', SONGS[0])
         disk = Disk(SONGS)
         song_path = os.path.join('songs', SONGS[disk.song_index])
         self.assertEqual(path, song_path)
 
-    def move_song_index(self):
+    def move_song_index(self) -> None:
         index = 0
         disk = Disk(SONGS)
         disk.next()
@@ -71,7 +71,7 @@ class TestDisk(unittest.TestCase):
         index = 0
         self.assertEqual(index, disk._playing_index)
 
-    def test_user_pick(self):
+    def test_user_pick(self) -> None:
         disk = Disk(SONGS)
         pick = 3
         disk.user_pick(pick)
@@ -83,31 +83,76 @@ class TestDisk(unittest.TestCase):
             pick = len(SONGS)
             disk.user_pick(pick)
 
-    def test_title(self):
+    def test_title(self) -> None:
         disk = Disk(SONGS)
         song = 'practical'
         title = disk.title()
         self.assertEqual(song, title)
 
-    def test_getitem(self):
+    def test_getitem(self) -> None:
         index = 3
         disk = Disk(SONGS)
         expected = SONGS[index]
         output = disk[index]
         self.assertEqual(expected, output)
 
-    def test_contains(self):
+    def test_contains(self) -> None:
         song = SONGS[3]
         disk = Disk(SONGS)
         self.assertIn(song, disk)
 
-    def test_len(self):
+    def test_len(self) -> None:
         expected = len(SONGS)
         disk = Disk(SONGS)
         output = len(disk)
         self.assertEqual(output, expected)
 
-    def test_iter_next(self):
+    def test_iter_next(self) -> None:
         disk = Disk(SONGS)
         for disk_item, song in zip(disk, SONGS):
             self.assertEqual(disk_item, song)
+
+
+class TestMusicPlayer(unittest.TestCase):
+    def setUp(self) -> None:
+        disk = Disk(SONGS)
+        self.player = MusicPlayer(disk, False, 100)
+        return super().setUp()
+
+    def tearDown(self) -> None:
+        return super().tearDown()
+
+    def test_mute(self) -> None:
+        self.assertFalse(self.player.is_muted)
+        self.player.mute()
+        self.assertTrue(self.player.is_muted)
+        self.player.mute()
+        self.assertTrue(self.player.is_muted)
+        self.player.unmute()
+        self.assertFalse(self.player.is_muted)
+        self.player.unmute()
+        self.assertFalse(self.player.is_muted)
+
+    def test_set_volume(self) -> None:
+        volume = 50.0
+        self.player.set_volume(volume)  # type: ignore
+        self.assertEqual(self.player.volume, volume)
+        with self.assertRaises(PlayerError):
+            self.player.set_volume(-2)
+            self.player.set_volume(101)
+
+    def test_playing(self) -> None:
+        expected = self.player.is_playing
+        self.player.playing()
+        self.assertIs(expected, not self.player.is_playing)
+
+        self.player.playing()
+        self.assertIs(expected, self.player.is_playing)
+
+    def test_bool(self) -> None:
+        expected = self.player._is_playing
+        output = bool(self.player)
+        self.assertIs(expected, output)
+        self.player._is_playing = False
+        expected = bool(self.player)
+        self.assertIs(self.player._is_playing, expected)

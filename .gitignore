@@ -4,3 +4,6 @@ venv
 lyrics
 .config.json
 player/jsonwrapper/testconfig.json
+.test_config.json
+.test_lyrics_dir/
+.test_lyrics.srt
