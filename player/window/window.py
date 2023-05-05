@@ -133,6 +133,7 @@ class MainWindow(QMainWindow):
             lambda: self.import_songs()
         )
         self.actionDelete_songs.triggered.connect(lambda: print('deleteImport_songs'))
+        self.actionClear_logs.triggered.connect(lambda: logger.clear())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
