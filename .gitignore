@@ -10,3 +10,4 @@ player/jsonwrapper/testconfig.json
 .test_lyrics.srt
 .logs.txt
 *.sh
+.test_songs_dir

@@ -268,7 +268,7 @@
      <string>File</string>
     </property>
     <addaction name="actionImport_songs"/>
-    <addaction name="actionDelete_song"/>
+    <addaction name="actionDelete_songs"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -339,9 +339,9 @@
     <string>Import songs</string>
    </property>
   </action>
-  <action name="actionDelete_song">
+  <action name="actionDelete_songs">
    <property name="text">
-    <string>Delete song</string>
+    <string>Delete songs</string>
    </property>
   </action>
   <action name="actionReset">

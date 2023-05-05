@@ -12,9 +12,9 @@ from typing import (
 
 __all__ = (
     'BASE_DIR',
-    'SONGSLIST',
     'PREVIOUS_BTN',
     'PAUSE_BTN',
+    'SONGS_DIR',
     'PLAY_BTN',
     'NEXT_BTN',
     'MUTE_BTN',
@@ -28,9 +28,12 @@ __all__ = (
     'VERISONS',
     'VERISONS',
     'SHORTCUTS',
+    'SUPPORTED_SONG_FORMATS',
+    'SUPPORTED_LYRICS_FORMATS',
     'CONFIG',
     'logger',
     'config',
+    'get_song_list',
 )
 
 
@@ -41,12 +44,16 @@ def lyrics_dir(base_dir: Path) -> str:
     return str(file)
 
 
+def get_song_list(song_dir: str) -> Tuple[str, ...]:
+    return tuple(filter(lambda i: i != '.gitignore', os.listdir(song_dir)))
+
+
 FpsLike = Callable[[int], int]
 
 
 BASE_DIR: Path = Path(__file__).parent.parent.parent
 LOG_DIR = os.path.join(BASE_DIR, '.logs.txt')
-SONGSLIST: Tuple[str, ...] = tuple(filter(lambda i: i != '.gitignore', os.listdir('songs')))
+SONGS_DIR: str = os.path.join(BASE_DIR, 'player', 'songs')
 PREVIOUS_BTN: str = os.path.join('images', 'previous-button.png')
 PAUSE_BTN: str = os.path.join('images', 'pause-button.png')
 PLAY_BTN: str = os.path.join('images', 'play-button.png')
@@ -78,6 +85,14 @@ CONFIG: Dict[Any, Any] = {
     'is_muted': False,
     'last_song': {},
 }
+
+SUPPORTED_SONG_FORMATS: Tuple[str, ...] = (
+    'mp3',
+)
+
+SUPPORTED_LYRICS_FORMATS: Tuple[str, ...] = (
+    'srt',
+)
 
 # CONFIG EXAMPLE
 #  {

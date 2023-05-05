@@ -8,6 +8,7 @@ from PyQt5 import uic, QtGui
 from typing import (
     Iterable,
     Union,
+    List,
     Any,
 )
 from .uiactions import (
@@ -19,6 +20,7 @@ from .uiactions import (
     manual_save_lyrics,
     make_file_types,
     edit_volume,
+    import_songs,
 )
 from lyricshandler import (
     Renderer,
@@ -27,19 +29,23 @@ from actions import (
     FPS,
     LOGO,
     TITLE,
+    THEMECLR,
     VERISONS,
     PLAYERUI,
-    PAUSE_BTN,
     NEXT_BTN,
     PLAY_BTN,
     MUTE_BTN,
-    THEMECLR,
+    SONGS_DIR,
+    PAUSE_BTN,
     SHORTCUTS,
     LYRICS_DIR,
     BACKGROUND,
     PREVIOUS_BTN,
+    SUPPORTED_SONG_FORMATS,
+    SUPPORTED_LYRICS_FORMATS,
     logger,
     config,
+    get_song_list,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -123,6 +129,10 @@ class MainWindow(QMainWindow):
         self.actionCreate.triggered.connect(lambda: print('create'))
         self.actionShortcuts.triggered.connect(lambda: print('shortcuts'))
         self.actionDelay.triggered.connect(lambda: self.set_lyrics_delay())
+        self.actionImport_songs.triggered.connect(
+            lambda: self.import_songs()
+        )
+        self.actionDelete_songs.triggered.connect(lambda: print('deleteImport_songs'))
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -211,16 +221,37 @@ class MainWindow(QMainWindow):
 
     def save_lyric_file(self) -> None:
         try:
-            path = self._file_explorer(('srt',))
+            path = self._file_explorer_one_file(SUPPORTED_LYRICS_FORMATS)
             manual_save_lyrics(path, self.player, LYRICS_DIR)
         except FileNotFoundError:
             logger.warning(f"{get_datetime()} File manager closed unexpectedly")
             # The file explorer was probably closed
 
-    def _file_explorer(self, file_types: Iterable[str]) -> str:
+    def _file_explorer_one_file(self, file_types: Iterable[str]) -> str:
         types = make_file_types(file_types)
         path, _ = QFileDialog.getOpenFileName(self, "Choose file", "", types)
         return path
+
+    def _file_explorer_many_files(self, file_types: Iterable[str]) -> List[str]:
+        types = make_file_types(file_types)
+        paths, _ = QFileDialog.getOpenFileNames(self, "Choose files", "", types)
+        return paths
+
+    def refresh_list_widget(self, widget: QListWidget, new_content: Iterable[str]) -> None:
+        widget.clear()
+        for content in new_content:
+            widget.addItem(content)
+
+    def import_songs(self) -> None:
+        # NOTE: Incase we've any bugs after importing songs, we may need
+        # to experiement with `self.player.disk._index` and `QListWidget.currentRow`
+        # to bring them back to sync
+        paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
+        import_songs(paths, SONGS_DIR)
+        self.player.change_disk(get_disk(config))
+        self.refresh_list_widget(self.music_container, get_song_list(SONGS_DIR))
+        # Set 'last_song' to `{}` after importing new and changing the `disk` for safety
+        config.edit('last_song', {})
 
     def display_lyric(self, line: Union[str, None]) -> None:
         if line is not None:

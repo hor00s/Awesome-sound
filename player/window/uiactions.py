@@ -1,9 +1,11 @@
 import os
+import shutil
 import traceback
 import datetime
 from lyricshandler import Creator
 from jsonwrapper import Handler
 from typing import (
+    List,
     Union,
     Iterable,
 )
@@ -12,8 +14,9 @@ from comps import (
     MusicPlayer
 )
 from actions import (
-    SONGSLIST,
+    SONGS_DIR,
     logger,
+    get_song_list,
 )
 
 
@@ -44,8 +47,8 @@ def get_datetime() -> datetime.datetime:
 def get_disk(config: Handler) -> Disk:
     last_song = config.get('last_song')
     if last_song:
-        return Disk(SONGSLIST, last_song['song'])
-    return Disk(SONGSLIST)
+        return Disk(get_song_list(SONGS_DIR), last_song['song'])
+    return Disk(get_song_list(SONGS_DIR))
 
 
 def get_lyrics_file(lyrics_dir: str, player: MusicPlayer, extension: str) -> str:
@@ -106,3 +109,8 @@ def edit_volume(config: Handler, player: MusicPlayer, volume: int) -> None:
     config.edit('volume', int(volume))
     if not player.is_muted:
         player.set_volume(config.get('volume'))
+
+
+def import_songs(songs: List[str], target_dir: str) -> None:
+    for song in songs:
+        shutil.copy(song, target_dir)

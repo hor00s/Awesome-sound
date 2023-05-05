@@ -156,3 +156,14 @@ class TestMusicPlayer(unittest.TestCase):
         self.player._is_playing = False
         expected = bool(self.player)
         self.assertIs(self.player._is_playing, expected)
+
+    def test_change_disk(self) -> None:
+        more_songs = list(SONGS)
+        more_songs.append('something.mp3')
+        more_songs.append('otherother.mp3')
+        new_disk = Disk(tuple(more_songs))
+        self.player.change_disk(new_disk)
+        self.assertEqual(len(self.player.disk), len(more_songs))
+
+        with self.assertRaises(PlayerError):
+            self.player.change_disk(str())  # type: ignore

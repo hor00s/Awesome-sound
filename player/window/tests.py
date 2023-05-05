@@ -1,5 +1,6 @@
 import unittest
 import os
+import shutil
 from comps import (
     MusicPlayer,
     Disk,
@@ -8,7 +9,8 @@ from jsonwrapper import Handler
 from actions import (
     BASE_DIR,
     CONFIG,
-    SONGSLIST,
+    SONGS_DIR,
+    get_song_list,
 )
 from .uiactions import (
     get_disk,
@@ -18,12 +20,18 @@ from .uiactions import (
     manual_save_lyrics,
     make_file_types,
     edit_volume,
+    import_songs,
 )
 
 
 test_lyrics_dir = os.path.join(BASE_DIR, 'player', 'window', '.test_lyrics_dir')
+test_songs_dir = os.path.join(BASE_DIR, 'player', 'window', '.test_songs_dir')
+
+if not os.path.exists(test_songs_dir):
+    os.mkdir(test_songs_dir)
 if not os.path.exists(test_lyrics_dir):
     os.mkdir(test_lyrics_dir)
+
 test_config_file = os.path.join(BASE_DIR, 'player', 'window', '.test_config.json')
 test_lyrics_file = os.path.join(BASE_DIR, '.test_lyrics.srt')
 EXTENSION = 'srt'
@@ -44,7 +52,7 @@ assert tuple(TEST_CONFIG.values()) == tuple(CONFIG.values())\
 class TestUiActions(unittest.TestCase):
     def setUp(self) -> None:
         test_config.init()
-        self.disk = Disk(SONGSLIST)
+        self.disk = Disk(get_song_list(SONGS_DIR))
         self.player = MusicPlayer(self.disk, test_config.get('is_muted', False),
                                   test_config.get('volume', False))
         return super().setUp()
@@ -56,18 +64,21 @@ class TestUiActions(unittest.TestCase):
     def test_get_disk(self) -> None:
         # Test with default song
         index = 0
+        songs = get_song_list(SONGS_DIR)
         disk = get_disk(test_config)
-        self.assertEqual(disk.song_mp3, SONGSLIST[index])
+        self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
 
         # Test with set song
         index = 3
-        CONFIG['last_song'] = {'song': SONGSLIST[index], 'timestamp': 1.1}
+        songs = get_song_list(SONGS_DIR)
+        CONFIG['last_song'] = {'song': songs[index], 'timestamp': 1.1}
         os.remove(test_config._file)
         test_config._config = CONFIG
         test_config.init()
         disk = get_disk(test_config)
-        self.assertEqual(disk.song_mp3, SONGSLIST[index])
+        songs = get_song_list(SONGS_DIR)
+        self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
 
     def test_get_lyrics_file(self) -> None:
@@ -123,3 +134,12 @@ class TestUiActions(unittest.TestCase):
         self.assertEqual(config_volume, vol2)
         self.assertNotEqual(self.player.volume, vol2)
         self.assertEqual(self.player.volume, vol)
+
+    def test_import_songs(self) -> None:
+        songs = list(get_song_list(SONGS_DIR))
+        path_list = list(map(lambda song: os.path.join(SONGS_DIR, song), songs))
+
+        import_songs(path_list, test_songs_dir)
+        result = os.listdir(test_songs_dir)
+        self.assertEqual(songs, result)
+        shutil.rmtree(test_songs_dir)
