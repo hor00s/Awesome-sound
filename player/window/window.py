@@ -1,3 +1,4 @@
+import os
 import pyglet  # type: ignore
 import datetime
 from comps import MusicPlayer
@@ -134,6 +135,8 @@ class MainWindow(QMainWindow):
         )
         self.actionDelete_songs.triggered.connect(lambda: print('deleteImport_songs'))
         self.actionClear_logs.triggered.connect(lambda: logger.clear())
+        self.actionReset.triggered.connect(lambda: config.restore_default())
+        self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -209,6 +212,17 @@ class MainWindow(QMainWindow):
         for song in self.player.disk:
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
+
+    def delete_lyrics(self) -> None:
+        paths = self._file_explorer_many_files(SUPPORTED_LYRICS_FORMATS)
+
+        for path in paths:
+            song_name = path.split(os.sep)[-1]
+            song_name = song_name.replace('.srt', '.mp3')
+            key = f"songs/{song_name}.delay"
+            if key in config:
+                config.remove_key(key)
+            os.remove(path)
 
     def set_title(self) -> None:
         if self.player.is_muted:

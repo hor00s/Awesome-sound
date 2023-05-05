@@ -283,6 +283,7 @@
     <addaction name="actionChoose_file"/>
     <addaction name="actionCreate"/>
     <addaction name="actionDelay"/>
+    <addaction name="actionDelete"/>
    </widget>
    <widget class="QMenu" name="menuLogs">
     <property name="title">
@@ -347,6 +348,11 @@
   <action name="actionReset">
    <property name="text">
     <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="text">
+    <string>Delete</string>
    </property>
   </action>
  </widget>
