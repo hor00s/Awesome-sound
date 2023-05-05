@@ -267,6 +267,8 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionImport_songs"/>
+    <addaction name="actionDelete_song"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -282,9 +284,24 @@
     <addaction name="actionCreate"/>
     <addaction name="actionDelay"/>
    </widget>
+   <widget class="QMenu" name="menuLogs">
+    <property name="title">
+     <string>Logs</string>
+    </property>
+    <addaction name="actionSee_logs"/>
+    <addaction name="actionClear_logs"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionReset"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
    <addaction name="menuLyrics"/>
+   <addaction name="menuLogs"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionShortcuts">
@@ -305,6 +322,31 @@
   <action name="actionDelay">
    <property name="text">
     <string>Delay</string>
+   </property>
+  </action>
+  <action name="actionSee_logs">
+   <property name="text">
+    <string>See logs</string>
+   </property>
+  </action>
+  <action name="actionClear_logs">
+   <property name="text">
+    <string>Clear logs</string>
+   </property>
+  </action>
+  <action name="actionImport_songs">
+   <property name="text">
+    <string>Import songs</string>
+   </property>
+  </action>
+  <action name="actionDelete_song">
+   <property name="text">
+    <string>Delete song</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>

@@ -1,7 +1,8 @@
 import os
+import traceback
+import datetime
 from lyricshandler import Creator
 from jsonwrapper import Handler
-
 from typing import (
     Union,
     Iterable,
@@ -12,7 +13,32 @@ from comps import (
 )
 from actions import (
     SONGSLIST,
+    logger,
 )
+
+
+def log_error(err: Exception) -> None:
+    long_error = traceback.format_exc().replace('\n', ' ')
+    err_format = f"""{get_datetime()} Short description: {err}\
+ Detailed description: {long_error}""".strip()
+    logger.error(err_format)
+
+
+def write_error(error: Exception, path: str) -> None:
+    date_time = datetime.datetime.now()
+    with open(path, mode='a') as f:
+        error_format = f"""
+---------------------------
+{date_time}
+Short error: {error}
+Detailed: {traceback.format_exc()}
+---------------------------
+        """
+        f.write(error_format)
+
+
+def get_datetime() -> datetime.datetime:
+    return datetime.datetime.now()
 
 
 def get_disk(config: Handler) -> Disk:
@@ -34,13 +60,20 @@ def get_lyrics_file(lyrics_dir: str, player: MusicPlayer, extension: str) -> str
 
 def set_lyrics_delay(key: str, delay: Union[str, float], config: Handler) -> None:
     try:
+        delay = float(delay)
         if key in config:
-            config.edit(key, float(delay))
+            prev_delay = config.get(key)
+            config.edit(key, delay)
+            msg = f"{get_datetime()} Delay was changed for {key} from `{prev_delay}` -> `{delay}`"
+            logger.debug(msg)
         else:
-            config.add(key, float(delay))
+            config.add(key, delay)
+            msg = f"{get_datetime()} Delay has been set for {key} to `{delay}` seconds"
+            logger.debug(msg)
     except ValueError:
+        logger.warning(f"{get_datetime()} {delay} is not allowed\
+ as value for lyrics delay. Please choose a numeric one")
         # User passed non numeric value
-        pass
 
 
 def mute_setup(player: MusicPlayer, config: Handler) -> None:
@@ -55,6 +88,7 @@ def mute_setup(player: MusicPlayer, config: Handler) -> None:
 def manual_save_lyrics(path: str, player: MusicPlayer, lyrics_dir: str) -> str:
     creator = Creator(player.disk, lyrics_dir)
     lyrics_location = creator.manual_save(path)
+    logger.debug(f"{get_datetime()} Lyrics file moved from {path} -> {lyrics_location}")
     return lyrics_location
 
 

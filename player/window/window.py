@@ -11,6 +11,7 @@ from typing import (
     Any,
 )
 from .uiactions import (
+    get_datetime,
     get_disk,
     get_lyrics_file,
     set_lyrics_delay,
@@ -37,6 +38,7 @@ from actions import (
     LYRICS_DIR,
     BACKGROUND,
     PREVIOUS_BTN,
+    logger,
     config,
 )
 from PyQt5.QtWidgets import (
@@ -58,17 +60,16 @@ class MainWindow(QMainWindow):
         self.window_title = f"{TITLE} {VERISONS[-1]}"
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
-
+        logger.info(f"{get_datetime()} Initializing application")
         self.player = MusicPlayer(get_disk(config), config.get('is_muted'), config.get('volume'))
 
         self.set_title()
 
         self.sound = pyglet.media.Player()
         self.current_song = pyglet.media.load(self.player.disk.song_path)
-
         self.lyrics = Renderer(get_lyrics_file(LYRICS_DIR, self.player, Renderer.EXTENSION))
-
         self.sound.queue(self.current_song)
+        logger.info(f"{get_datetime()} Setting up media devices")
 
         # Load components
         self._load_sliders()
@@ -127,6 +128,7 @@ class MainWindow(QMainWindow):
         timer = QTimer(self.total_time_lbl)
         timer.timeout.connect(self.update)  # type: ignore
         timer.start(FPS(20))
+        logger.info(f"{get_datetime()} Ui set up is completed")
 
     def closeEvent(self, event: Any) -> None:
         # When player closes, the current timestamp of
@@ -135,6 +137,7 @@ class MainWindow(QMainWindow):
         timestamp = float(f"{self.sound.time:.2f}")
         timestamp -= set_behind
         config.edit('last_song', {'song': self.player.disk.song_mp3, 'timestamp': timestamp})
+        logger.info(f"{get_datetime()} Application terminated")
 
     def _load_btns(self) -> None:
         self.prev_btn = self.findChild(QPushButton, 'prev_btn')
@@ -211,8 +214,8 @@ class MainWindow(QMainWindow):
             path = self._file_explorer(('srt',))
             manual_save_lyrics(path, self.player, LYRICS_DIR)
         except FileNotFoundError:
+            logger.warning(f"{get_datetime()} File manager closed unexpectedly")
             # The file explorer was probably closed
-            pass
 
     def _file_explorer(self, file_types: Iterable[str]) -> str:
         types = make_file_types(file_types)

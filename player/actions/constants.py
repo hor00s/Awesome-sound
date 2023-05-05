@@ -1,4 +1,5 @@
 import os
+from logger import Logger
 from jsonwrapper import Handler
 from pathlib import Path
 from typing import (
@@ -28,6 +29,7 @@ __all__ = (
     'VERISONS',
     'SHORTCUTS',
     'CONFIG',
+    'logger',
     'config',
 )
 
@@ -43,6 +45,7 @@ FpsLike = Callable[[int], int]
 
 
 BASE_DIR: Path = Path(__file__).parent.parent.parent
+LOG_DIR = os.path.join(BASE_DIR, '.logs.txt')
 SONGSLIST: Tuple[str, ...] = tuple(filter(lambda i: i != '.gitignore', os.listdir('songs')))
 PREVIOUS_BTN: str = os.path.join('images', 'previous-button.png')
 PAUSE_BTN: str = os.path.join('images', 'pause-button.png')
@@ -90,6 +93,7 @@ CONFIG: Dict[Any, Any] = {
 #  }
 
 
+logger = Logger(1, LOG_DIR)
 config = Handler(CONFIG_FILE, CONFIG)
 if not os.path.exists(CONFIG_FILE):
     config.init()
