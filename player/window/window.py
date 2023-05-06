@@ -46,7 +46,6 @@ from actions import (
     SUPPORTED_LYRICS_FORMATS,
     logger,
     config,
-    get_song_list,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -209,6 +208,7 @@ class MainWindow(QMainWindow):
         self.music_container.setSpacing(3)
 
     def _fill_list_widget(self) -> None:
+        self.music_container.clear()
         for song in self.player.disk:
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
@@ -252,19 +252,11 @@ class MainWindow(QMainWindow):
         paths, _ = QFileDialog.getOpenFileNames(self, "Choose files", "", types)
         return paths
 
-    def refresh_list_widget(self, widget: QListWidget, new_content: Iterable[str]) -> None:
-        widget.clear()
-        for content in new_content:
-            widget.addItem(content)
-
     def import_songs(self) -> None:
-        # NOTE: Incase we've any bugs after importing songs, we may need
-        # to experiement with `self.player.disk._index` and `QListWidget.currentRow`
-        # to bring them back to sync
         paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
         import_songs(paths, SONGS_DIR)
         self.player.change_disk(get_disk(config))
-        self.refresh_list_widget(self.music_container, get_song_list(SONGS_DIR))
+        self._fill_list_widget()
         # Set 'last_song' to `{}` after importing new and changing the `disk` for safety
         config.edit('last_song', {})
 

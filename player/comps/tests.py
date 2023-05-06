@@ -161,9 +161,13 @@ class TestMusicPlayer(unittest.TestCase):
         more_songs = list(SONGS)
         more_songs.append('something.mp3')
         more_songs.append('otherother.mp3')
+        current_playing = self.player.disk.song_mp3
         new_disk = Disk(tuple(more_songs))
         self.player.change_disk(new_disk)
         self.assertEqual(len(self.player.disk), len(more_songs))
+        playing_after_change = self.player.disk.song_mp3
 
+        self.assertEqual(current_playing, playing_after_change)
+        self.assertEqual(more_songs[self.player.disk.song_index], self.player.disk.song_mp3)
         with self.assertRaises(PlayerError):
             self.player.change_disk(str())  # type: ignore

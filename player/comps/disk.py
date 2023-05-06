@@ -67,6 +67,10 @@ class Disk:
         """
         return os.path.join('songs', self.song_mp3)
 
+    @property
+    def song_list(self) -> Tuple[str, ...]:
+        return self._songs
+
     def _move_song_index(self, direction: str) -> int:
         """When the `next` or `previous` song is out
         of list's range this function restarts
