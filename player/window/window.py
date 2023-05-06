@@ -196,9 +196,17 @@ class MainWindow(QMainWindow):
         self.current_playing_lbl.setWordWrap(True)
 
     def _slider_pressed(self) -> None:
+        """Set the self.is_pressed to `True` if the music slider is pressed
+        """
         self.is_pressed = True
 
     def move_song(self, seconds: int) -> None:
+        """Move the music slider to a song's timestamp and upon release,
+        set the song to that timestamp and reset the `self.is_pressed` to `False`
+
+        :param seconds: The timestamp the the slider was left
+        :type seconds: int
+        """
         self.is_pressed = False
         self.sound.seek(seconds)
 
@@ -212,12 +220,16 @@ class MainWindow(QMainWindow):
         self.music_container.setSpacing(3)
 
     def _fill_list_widget(self) -> None:
+        """Fill the list widget where all the songs are listed with
+        the content of `self.player.disk`
+        """
         self.music_container.clear()
         for song in self.player.disk:
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
 
     def delete_lyrics(self) -> None:
+        # TODO: Lock the navigation in app's lyrics dir
         paths = self._file_explorer_many_files(SUPPORTED_LYRICS_FORMATS)
 
         for path in paths:

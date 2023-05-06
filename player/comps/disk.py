@@ -53,22 +53,38 @@ class Disk:
 
     @property
     def song_index(self) -> int:
+        """
+        :return: The index of the song that is currently playing
+        :rtype: int
+        """
         return self._playing_index
 
     @property
     def song_mp3(self) -> str:
+        """
+        :return: Return the song that is currently playing with the .mp3 extension
+        Example: `Gustavo Santaolalla - Babel (Trap Remix).mp3`
+        :rtype: str
+        """
         return self[self._playing_index]
 
     @property
     def song_path(self) -> str:
-        """Return the full path of the current song
-
-        :return str:
+        """
+        :return str: Return the full path of the current song
+        Example: `songs/Gustavo Santaolalla - Babel (Trap Remix).mp3`
+        TODO: Change this when relative paths are fixed
         """
         return os.path.join('songs', self.song_mp3)
 
     @property
     def song_list(self) -> Tuple[str, ...]:
+        """
+        :return: All the songs that contained in the disk as full paths
+        Example: `('Gustavo Santaolalla - Babel (Trap Remix).mp3', ...)`
+        TODO: Change this when relative paths are fixed
+        :rtype: Tuple[str, ...]
+        """
         return self._songs
 
     def _move_song_index(self, direction: str) -> int:
