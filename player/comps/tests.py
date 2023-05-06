@@ -169,5 +169,14 @@ class TestMusicPlayer(unittest.TestCase):
 
         self.assertEqual(current_playing, playing_after_change)
         self.assertEqual(more_songs[self.player.disk.song_index], self.player.disk.song_mp3)
+
+        # Check deletion
+        more_songs.remove(self.player.disk.song_mp3)
+        disk = Disk(tuple(more_songs))
+        current_playing_index = self.player.disk.song_index
+        self.player.change_disk(disk, deletetion=True)
+        expected = current_playing_index + 1
+        self.assertEqual(self.player.disk.song_index, expected)
+
         with self.assertRaises(PlayerError):
             self.player.change_disk(str())  # type: ignore

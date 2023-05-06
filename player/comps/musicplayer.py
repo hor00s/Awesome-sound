@@ -40,12 +40,16 @@ class MusicPlayer:
     def is_playing(self) -> bool:
         return self._is_playing
 
-    def change_disk(self, new_disk: Disk) -> None:
+    def change_disk(self, new_disk: Disk, deletetion: bool = False) -> None:
         if not isinstance(new_disk, Disk):
             raise PlayerError(f"Player's disk cannot be of type -{type(new_disk)}-")
         current_playing = self.disk.song_mp3
         self.disk = new_disk
-        self.disk.user_pick(self.disk.song_list.index(current_playing))
+
+        if not deletetion:
+            self.disk.user_pick(self.disk.song_list.index(current_playing))
+        elif deletetion:
+            self.disk.next()
 
     def mute(self) -> None:
         self._is_muted = True

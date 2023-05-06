@@ -114,3 +114,10 @@ def edit_volume(config: Handler, player: MusicPlayer, volume: int) -> None:
 def import_songs(songs: List[str], target_dir: str) -> None:
     for song in songs:
         shutil.copy(song, target_dir)
+        logger.debug(f"{song} -> {target_dir}")
+
+
+def delete_song(path: str, song_name: str) -> None:
+    song_path = os.path.join(path, song_name)
+    os.remove(song_path)
+    logger.warning(f"Song {song_name} has been deleted")

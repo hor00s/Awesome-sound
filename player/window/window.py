@@ -22,6 +22,7 @@ from .uiactions import (
     make_file_types,
     edit_volume,
     import_songs,
+    delete_song,
 )
 from lyricshandler import (
     Renderer,
@@ -55,6 +56,7 @@ from PyQt5.QtWidgets import (
     QListWidget,
     QPushButton,
     QFileDialog,
+    QMessageBox,
     QInputDialog,
 )
 
@@ -132,7 +134,7 @@ class MainWindow(QMainWindow):
         self.actionImport_songs.triggered.connect(
             lambda: self.import_songs()
         )
-        self.actionDelete_songs.triggered.connect(lambda: print('deleteImport_songs'))
+        self.actionDelete_song.triggered.connect(lambda: self.delete_songs())
         self.actionClear_logs.triggered.connect(lambda: logger.clear())
         self.actionReset.triggered.connect(lambda: config.restore_default())
         self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
@@ -252,13 +254,32 @@ class MainWindow(QMainWindow):
         paths, _ = QFileDialog.getOpenFileNames(self, "Choose files", "", types)
         return paths
 
-    def import_songs(self) -> None:
-        paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
-        import_songs(paths, SONGS_DIR)
-        self.player.change_disk(get_disk(config))
+    def askyesno(self, msg: str) -> bool:
+        replies = {
+            16384: True,
+            65536: False,
+        }
+        reply = QMessageBox.question(self, 'Delete song', msg,
+                                     QMessageBox.Yes | QMessageBox.No)  # type: ignore
+        return replies[reply]
+
+    def update_song_list(self, deletion: bool = False) -> None:
+        self.player.change_disk(get_disk(config), deletion)
         self._fill_list_widget()
         # Set 'last_song' to `{}` after importing new and changing the `disk` for safety
         config.edit('last_song', {})
+
+    def import_songs(self) -> None:
+        paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
+        import_songs(paths, SONGS_DIR)
+        self.update_song_list()
+
+    def delete_songs(self) -> None:
+        prompt = f"Are you sure you want to delete {self.player.disk.title()}?"
+        reply = self.askyesno(prompt)
+        if reply:
+            delete_song(SONGS_DIR, self.player.disk.song_mp3)
+            self.update_song_list(deletion=True)
 
     def display_lyric(self, line: Union[str, None]) -> None:
         if line is not None:

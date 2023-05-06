@@ -21,6 +21,7 @@ from .uiactions import (
     make_file_types,
     edit_volume,
     import_songs,
+    delete_song,
 )
 
 
@@ -143,3 +144,8 @@ class TestUiActions(unittest.TestCase):
         result = os.listdir(test_songs_dir)
         self.assertEqual(songs, result)
         shutil.rmtree(test_songs_dir)
+
+    def test_delete_song(self) -> None:
+        # TODO: Find a way to test this without deleteing
+        # a song from the main directory
+        delete_song
