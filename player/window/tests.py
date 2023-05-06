@@ -22,6 +22,7 @@ from .uiactions import (
     edit_volume,
     import_songs,
     delete_song,
+    even_spaces,
 )
 
 
@@ -149,3 +150,11 @@ class TestUiActions(unittest.TestCase):
         # TODO: Find a way to test this without deleteing
         # a song from the main directory
         delete_song
+
+    def test_even_spaces(self) -> None:
+        first_word, second_word = 'test', 'other'
+        spaced = even_spaces(first_word, 7)
+        expected = f"{first_word}   {second_word}"
+
+        output = f"{first_word}{spaced}{second_word}"
+        self.assertEqual(output, expected)

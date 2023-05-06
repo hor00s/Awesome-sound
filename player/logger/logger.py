@@ -191,7 +191,7 @@ class MetaLogger(type):
 
         log_functions = 0
         target_log_functions = len(Config(1))
-        dismiss_attrs = ('settings', 'get_line_info', 'clear')
+        dismiss_attrs = ('settings', 'get_line_info', 'clear', 'log_path')
         for log in attrs:
             if not log.startswith('_') and log not in dismiss_attrs:
                 log_functions += 1
@@ -221,6 +221,10 @@ class Logger(metaclass=MetaLogger):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(instance={self._settings._INSTANCE})>"
+
+    @property
+    def log_path(self) -> Optional[str]:
+        return self._log_path
 
     @property
     def settings(self) -> Config:

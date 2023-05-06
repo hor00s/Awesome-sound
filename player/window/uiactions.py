@@ -215,3 +215,35 @@ def delete_song(path: str, song_name: str) -> None:
     song_path = os.path.join(path, song_name)
     os.remove(song_path)
     logger.warning(f"Song {song_name} has been deleted")
+
+
+def even_spaces(first_word: str, space_buffer: int) -> str:
+    """Give a fixed ammount of spaces of a given word. Example
+        ```
+            >>> space_buffer = 10
+            >>>
+            >>> first, second = 'word' 'something'
+            >>> spaces = even_spaces(first, space_buffer)
+            >>> msg1 = f"{first}{spaces}{secons}"
+            >>>
+            >>> first, second = 'or', 'text'
+            >>> spaces = even_spaces(first, space_buffer)
+            >>> msg2 = f"{first}{spaces}{secons}"
+            >>> msg1
+            'word      something'
+            >>> msg2
+            'or        text'
+            >>> # combined
+            >>> 'word      something'
+            >>> 'or        text'
+        ```
+
+    :param first_word: The first word tha the spaces will be determined from
+    :type first_word: str
+    :param space_buffer: The fixed ammount of spaces needed
+    :type space_buffer: int
+    :return: The `first_word` with the according ammont of space `' '` chars
+    :rtype: str
+    """
+    spaces = space_buffer - len(first_word)
+    return " " * spaces

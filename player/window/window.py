@@ -48,6 +48,9 @@ from actions import (
     logger,
     config,
 )
+from .customwidgets import (
+    ScrollMessageBox,
+)
 from PyQt5.QtWidgets import (
     QLabel,
     QSlider,
@@ -131,7 +134,7 @@ class MainWindow(QMainWindow):
         # Menu actions
         self.actionChoose_file.triggered.connect(lambda: self.save_lyric_file())
         self.actionCreate.triggered.connect(lambda: print('create'))
-        self.actionShortcuts.triggered.connect(lambda: print('shortcuts'))
+        self.actionShortcuts.triggered.connect(lambda: self.shortcuts_help())
         self.actionDelay.triggered.connect(lambda: self.set_lyrics_delay())
         self.actionImport_songs.triggered.connect(
             lambda: self.import_songs()
@@ -140,6 +143,7 @@ class MainWindow(QMainWindow):
         self.actionClear_logs.triggered.connect(lambda: logger.clear())
         self.actionReset.triggered.connect(lambda: config.restore_default())
         self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
+        self.actionSee_logs.triggered.connect(lambda: self.check_logs())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -277,6 +281,26 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(self, 'Delete song', msg,
                                      QMessageBox.Yes | QMessageBox.No)  # type: ignore
         return replies[reply]
+
+    def check_logs(self) -> None:
+        w_width, w_height = 500, 600
+        if logger.log_path is not None:
+            with open(logger.log_path, mode='r') as f:
+                logs = f.read().split('\n')
+
+            logs.reverse()
+            res = ScrollMessageBox('Logs', logs, w_width, w_height, QtGui.QIcon(LOGO))
+            res.exec_()
+        else:
+            raise FileNotFoundError("There is no file assigned for logging or is deleted")
+
+    def shortcuts_help(self) -> None:
+        w_width, w_height = 150, 300
+        msg = []
+        for bind, key in SHORTCUTS.items():
+            msg.append(f"{bind} ~> {key}")
+        res = ScrollMessageBox('Shortcuts', msg, w_width, w_height, QtGui.QIcon(LOGO))
+        res.exec_()
 
     def update_song_list(self, deletion: bool = False) -> None:
         self.player.change_disk(get_disk(config), deletion)
