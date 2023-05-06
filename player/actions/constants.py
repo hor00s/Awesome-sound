@@ -78,6 +78,7 @@ SHORTCUTS: Dict[str, str] = {
     'PREV SONG': '-',
     'NEXT SONG': '+',
     'MUTE': 'm',
+    'DELETE SONG': 'del',
 }
 
 CONFIG: Dict[Any, Any] = {

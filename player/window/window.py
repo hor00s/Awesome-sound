@@ -120,11 +120,13 @@ class MainWindow(QMainWindow):
         self.next_shortcut = QShortcut(QKeySequence(SHORTCUTS['NEXT SONG']), self)
         self.prev_shortcut = QShortcut(QKeySequence(SHORTCUTS['PREV SONG']), self)
         self.mute_shortcut = QShortcut(QKeySequence(SHORTCUTS['MUTE']), self)
+        self.delete_song_shortcut = QShortcut(QKeySequence(SHORTCUTS['DELETE SONG']), self)
 
         self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())  # type: ignore
         self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
         self.prev_shortcut.activated.connect(lambda: self.prev_song())  # type: ignore
         self.mute_shortcut.activated.connect(lambda: self.mute_player())  # type: ignore
+        self.delete_song_shortcut.activated.connect(lambda: self.delete_song())  # type: ignore
 
         # Menu actions
         self.actionChoose_file.triggered.connect(lambda: self.save_lyric_file())
@@ -134,7 +136,7 @@ class MainWindow(QMainWindow):
         self.actionImport_songs.triggered.connect(
             lambda: self.import_songs()
         )
-        self.actionDelete_song.triggered.connect(lambda: self.delete_songs())
+        self.actionDelete_song.triggered.connect(lambda: self.delete_song())
         self.actionClear_logs.triggered.connect(lambda: logger.clear())
         self.actionReset.triggered.connect(lambda: config.restore_default())
         self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
@@ -225,6 +227,7 @@ class MainWindow(QMainWindow):
             if key in config:
                 config.remove_key(key)
             os.remove(path)
+            logger.debug(f"Lyrics for {self.player.disk.title()} has been removed")
 
     def set_title(self) -> None:
         if self.player.is_muted:
@@ -274,12 +277,14 @@ class MainWindow(QMainWindow):
         import_songs(paths, SONGS_DIR)
         self.update_song_list()
 
-    def delete_songs(self) -> None:
+    def delete_song(self) -> None:
         prompt = f"Are you sure you want to delete {self.player.disk.title()}?"
         reply = self.askyesno(prompt)
         if reply:
             delete_song(SONGS_DIR, self.player.disk.song_mp3)
             self.update_song_list(deletion=True)
+        else:
+            logger.debug("Delete song action was aborted")
 
     def display_lyric(self, line: Union[str, None]) -> None:
         if line is not None:
