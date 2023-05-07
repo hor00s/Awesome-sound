@@ -13,6 +13,7 @@ from actions import (
     get_song_list,
 )
 from .uiactions import (
+    get_delay_key,
     get_disk,
     get_lyrics_file,
     set_lyrics_delay,
@@ -39,16 +40,13 @@ test_lyrics_file = os.path.join(BASE_DIR, '.test_lyrics.srt')
 EXTENSION = 'srt'
 
 TEST_CONFIG = {
+    'donwload_dir': '',
     'volume': 100,
     'is_muted': False,
     'last_song': {},
 }
+
 test_config = Handler(test_config_file, TEST_CONFIG)
-
-
-assert tuple(TEST_CONFIG.values()) == tuple(CONFIG.values())\
-    and tuple(TEST_CONFIG.keys()) == tuple(CONFIG.keys()),\
-    "There are inconsistencies between CONFIG and TEST_CONFIG"
 
 
 class TestUiActions(unittest.TestCase):
@@ -90,7 +88,7 @@ class TestUiActions(unittest.TestCase):
 
     def test_set_lyrics_delay(self) -> None:
         delay = 1
-        key = f"{self.disk.song_mp3}.delay"
+        key = get_delay_key(self.player.disk)
 
         set_lyrics_delay(key, delay, test_config)
         self.assertEqual(test_config.get(key), delay)

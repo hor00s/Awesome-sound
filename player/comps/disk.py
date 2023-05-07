@@ -21,7 +21,7 @@ class Disk:
         self._songs = songs_list
         self._playing_index = 0
 
-        if last_song is not None:
+        if last_song:
             self._playing_index = self._songs.index(last_song)
 
     def __str__(self) -> str:

@@ -11,6 +11,7 @@ from typing import (
 
 
 __all__ = (
+    'SOURCE_CODE',
     'BASE_DIR',
     'PREVIOUS_BTN',
     'PAUSE_BTN',
@@ -18,6 +19,7 @@ __all__ = (
     'PLAY_BTN',
     'NEXT_BTN',
     'MUTE_BTN',
+    'RECORD_BTN',
     'BACKGROUND',
     'LOGO',
     'PLAYERUI',
@@ -50,7 +52,7 @@ def get_song_list(song_dir: str) -> Tuple[str, ...]:
 
 FpsLike = Callable[[int], int]
 
-
+SOURCE_CODE = 'https://github.com/hor00s/Awesome-sound'
 BASE_DIR: Path = Path(__file__).parent.parent.parent
 LOG_DIR = os.path.join(BASE_DIR, '.logs.txt')
 SONGS_DIR: str = os.path.join(BASE_DIR, 'player', 'songs')
@@ -59,6 +61,7 @@ PAUSE_BTN: str = os.path.join('images', 'pause-button.png')
 PLAY_BTN: str = os.path.join('images', 'play-button.png')
 NEXT_BTN: str = os.path.join('images', 'next-button.png')
 MUTE_BTN: str = os.path.join('images', 'mute-button.png')
+RECORD_BTN: str = os.path.join('images', 'record.png')
 BACKGROUND: str = os.path.join('images', 'background.png')
 LOGO: str = os.path.join('images', 'applogo.png')
 PLAYERUI: str = os.path.join('window', 'player.ui')
@@ -67,12 +70,14 @@ FPS: FpsLike = lambda frame_rate: int(1000 / frame_rate)
 LYRICS_DIR: str = lyrics_dir(BASE_DIR)
 THEMECLR: str = 'rgb(0,206,209)'
 TITLE: str = 'Awesome sound'
+DONWLOAD_DIR = Path(Path.home(), 'Downloads')
 VERISONS: Tuple[str, ...] = (
     'v.0.5',
     'v.0.6',
     'v.0.7',
     'v.0.8',
     'v.0.9',
+    'v.1.0',
 )
 
 SHORTCUTS: Dict[str, str] = {
@@ -81,9 +86,11 @@ SHORTCUTS: Dict[str, str] = {
     'NEXT SONG': '+',
     'DELETE SONG': 'del',
     'MUTE': 'm',
+    'TRIM TRIGGER': 't',
 }
 
 CONFIG: Dict[Any, Any] = {
+    'download_dir': str(DONWLOAD_DIR),
     'volume': 100,
     'is_muted': False,
     'last_song': {},
@@ -99,6 +106,7 @@ SUPPORTED_LYRICS_FORMATS: Tuple[str, ...] = (
 
 # CONFIG EXAMPLE
 #  {
+#      "download_dir": "~/Downloads" (Configurable)
 #      "volume": 59,
 #      "is_muted": true,
 #      "last_song": {

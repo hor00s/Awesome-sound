@@ -20,6 +20,16 @@ from actions import (
 )
 
 
+def get_delay_key(disk: Disk) -> str:
+    """
+    :param disk: The current disk object
+    :type disk: Disk
+    :return: It's full path with `.delay` extension (`songs/<song_name>.mp3.delay`)
+    :rtype: str
+    """
+    return f"{disk.song_path}.delay"
+
+
 def log_error(err: Exception) -> None:
     """If an error occures, modify it into a proper format
     and write it in app's logs
@@ -214,7 +224,6 @@ def delete_song(path: str, song_name: str) -> None:
     """
     song_path = os.path.join(path, song_name)
     os.remove(song_path)
-    logger.warning(f"Song {song_name} has been deleted")
 
 
 def even_spaces(first_word: str, space_buffer: int) -> str:

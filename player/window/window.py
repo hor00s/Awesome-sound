@@ -1,6 +1,8 @@
 import os
 import pyglet  # type: ignore
 import datetime
+import webbrowser
+from pydub import AudioSegment  # type: ignore
 from comps import MusicPlayer
 from tinytag import TinyTag  # type: ignore
 from PyQt5.QtGui import QKeySequence
@@ -13,6 +15,7 @@ from typing import (
     Any,
 )
 from .uiactions import (
+    get_delay_key,
     get_datetime,
     get_disk,
     get_lyrics_file,
@@ -39,9 +42,11 @@ from actions import (
     MUTE_BTN,
     SONGS_DIR,
     PAUSE_BTN,
+    RECORD_BTN,
     SHORTCUTS,
     LYRICS_DIR,
     BACKGROUND,
+    SOURCE_CODE,
     PREVIOUS_BTN,
     SUPPORTED_SONG_FORMATS,
     SUPPORTED_LYRICS_FORMATS,
@@ -55,6 +60,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QSlider,
     QShortcut,
+    QStatusBar,
     QMainWindow,
     QListWidget,
     QPushButton,
@@ -74,6 +80,11 @@ class MainWindow(QMainWindow):
         logger.info(f"{get_datetime()} Initializing application")
         self.player = MusicPlayer(get_disk(config), config.get('is_muted'), config.get('volume'))
 
+        self.trim_mode = False
+        self.lyrics_mode = False
+        self.timestamp_start = datetime.timedelta(hours=0, minutes=0, seconds=0, milliseconds=0)
+        self.timestamp_stop = datetime.timedelta(hours=0, minutes=0, seconds=0, milliseconds=0)
+
         self.set_title()
 
         self.sound = pyglet.media.Player()
@@ -87,6 +98,7 @@ class MainWindow(QMainWindow):
         self._load_labels()
         self._load_lists()
         self._load_btns()
+        self._load_status_bar()
 
         # Set UI
         self.play_btn.setIcon(QtGui.QIcon(self.play_btn_switcher()))
@@ -113,6 +125,7 @@ class MainWindow(QMainWindow):
         self.song_slider.sliderReleased.connect(
             lambda: self.move_song(self.song_slider.value() / 60)
         )
+        self.rec_btn.clicked.connect(lambda: self.trim_song())
 
         last_song = config.get('last_song')
         if last_song:
@@ -124,12 +137,14 @@ class MainWindow(QMainWindow):
         self.prev_shortcut = QShortcut(QKeySequence(SHORTCUTS['PREV SONG']), self)
         self.mute_shortcut = QShortcut(QKeySequence(SHORTCUTS['MUTE']), self)
         self.delete_song_shortcut = QShortcut(QKeySequence(SHORTCUTS['DELETE SONG']), self)
+        self.trim_shortcut = QShortcut(QKeySequence(SHORTCUTS['TRIM TRIGGER']), self)
 
         self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())  # type: ignore
         self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
         self.prev_shortcut.activated.connect(lambda: self.prev_song())  # type: ignore
         self.mute_shortcut.activated.connect(lambda: self.mute_player())  # type: ignore
         self.delete_song_shortcut.activated.connect(lambda: self.delete_song())  # type: ignore
+        self.trim_shortcut.activated.connect(lambda: self.trim_song())  # type: ignore
 
         # Menu actions
         self.actionChoose_file.triggered.connect(lambda: self.save_lyric_file())
@@ -144,6 +159,7 @@ class MainWindow(QMainWindow):
         self.actionReset.triggered.connect(lambda: config.restore_default())
         self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
         self.actionSee_logs.triggered.connect(lambda: self.check_logs())
+        self.actionSource_code.triggered.connect(lambda: webbrowser.open(SOURCE_CODE))
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -165,8 +181,10 @@ class MainWindow(QMainWindow):
         self.next_btn = self.findChild(QPushButton, 'next_btn')
         self.play_btn = self.findChild(QPushButton, 'play_btn')
         self.mute_btn = self.findChild(QPushButton, 'mute_btn')
+        self.rec_btn = self.findChild(QPushButton, 'rec_btn')
 
         self.prev_btn.setIcon(QtGui.QIcon(PREVIOUS_BTN))
+        self.rec_btn.setIcon(QtGui.QIcon(RECORD_BTN))
         self.next_btn.setIcon(QtGui.QIcon(NEXT_BTN))
         self.play_btn.setIcon(QtGui.QIcon(PLAY_BTN))
         self.mute_btn.setIcon(QtGui.QIcon(MUTE_BTN))
@@ -175,6 +193,7 @@ class MainWindow(QMainWindow):
         self.next_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.play_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.mute_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.rec_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
 
     def _load_sliders(self) -> None:
         self.song_slider = self.findChild(QSlider, 'music_prog_bar')
@@ -223,6 +242,23 @@ class MainWindow(QMainWindow):
         self.music_container.setWordWrap(True)
         self.music_container.setSpacing(3)
 
+    def _load_status_bar(self) -> None:
+        self.status_bar = self.findChild(QStatusBar, 'statusbar')
+        self.time1_lbl = QLabel(self)
+        self.time2_lbl = QLabel(self)
+        self.arrow_lbl = QLabel(self)
+        self.action_lbl = QLabel(self)
+
+        self.time1_lbl.setText(str(self.timestamp_start))
+        self.time2_lbl.setText(str(self.timestamp_stop))
+        self.arrow_lbl.setText('~>')
+        self.action_lbl.setText('')
+
+        self.status_bar.addWidget(self.time1_lbl)
+        self.status_bar.addWidget(self.arrow_lbl)
+        self.status_bar.addWidget(self.time2_lbl)
+        self.status_bar.addWidget(self.action_lbl)
+
     def _fill_list_widget(self) -> None:
         """Fill the list widget where all the songs are listed with
         the content of `self.player.disk`
@@ -232,8 +268,49 @@ class MainWindow(QMainWindow):
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
 
+    def refresh_status_bar(self, start: str, end: str, action: str) -> None:
+        self.time1_lbl.setText(start)
+        self.time2_lbl.setText(end)
+        self.action_lbl.setText(action)
+
+    def valid_timestamps(self, time1: datetime.timedelta, time2: datetime.timedelta) -> bool:
+        return time1 < time2
+
+    def trim_song(self) -> None:
+        slider_position = self.song_slider.value()
+
+        if not self.trim_mode:
+            self.timestamp_start = datetime.timedelta(seconds=slider_position)
+            self.time1_lbl.setText(str(self.timestamp_start))
+            self.trim_mode = True
+            self.action_lbl.setText('Trim mode')
+        elif self.trim_mode:
+            self.timestamp_stop = datetime.timedelta(seconds=slider_position)
+            self.time2_lbl.setText(str(self.timestamp_stop))
+            self.trim_mode = False
+            self.action_lbl.setText('')
+            if self.valid_timestamps(self.timestamp_start, self.timestamp_stop):
+                start = (self.timestamp_start.seconds / 60) * 1000  # To milliseconds
+                stop = (self.timestamp_stop.seconds / 60) * 1000  # To milliseconds
+                audio = AudioSegment.from_file(self.player.disk.song_path, format='mp3')
+                extract = audio[start:stop]  # type: ignore
+                trimmed_name = f'{self.player.disk.title()}-trimmed.mp3'
+                export_dir = os.path.join(config['download_dir'], trimmed_name)
+                extract.export(export_dir)
+                import_songs([export_dir], SONGS_DIR)
+                self.update_song_list()
+                # TODO: Reset status bar after x seconds
+                # FIXME: This crashes if a song can't be trimmed
+                # TODO: Use status bar to show such errors for x seconds
+                song = self.player.disk.title()
+                msg = f"Song {song} has been trimmed from `{start / 1000} - {stop / 1000}`"
+                logger.success(msg)
+                return
+
+        logger.warning("Trim has been abborted")
+
     def delete_lyrics(self) -> None:
-        key = f"songs/{self.player.disk.song_mp3}.delay"
+        key = get_delay_key(self.player.disk)
         path = os.path.join(LYRICS_DIR, f"{self.player.disk.title()}.srt")
         title = "Delete lyrics"
         msg = f"Are you sure you want to delete lyrics for {self.player.disk.title()}?"
@@ -309,10 +386,10 @@ class MainWindow(QMainWindow):
         res.exec_()
 
     def update_song_list(self, deletion: bool = False) -> None:
+        config.edit('last_song', {})
         self.player.change_disk(get_disk(config), deletion)
         self._fill_list_widget()
         # Set 'last_song' to `{}` after importing new and changing the `disk` for safety
-        config.edit('last_song', {})
 
     def import_songs(self) -> None:
         paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
@@ -324,13 +401,15 @@ class MainWindow(QMainWindow):
         title = "Delete song"
         reply = self.askyesno(title, prompt)
         if reply:
-            delete_song(SONGS_DIR, self.player.disk.song_mp3)
+            to_delete = self.player.disk.song_mp3
+            delete_song(SONGS_DIR, to_delete)
             self.update_song_list(deletion=True)
-            logger.success(f"Song {self.player.disk.title()} has been deleted")
-            key = f"{self.player.disk.song_mp3}.delay"
+            self.next_song()
+            logger.success(f"Song {to_delete} has been deleted")
+            key = get_delay_key(self.player.disk)
             if key in config:
                 config.remove_key(key)
-                logger.success(f"Delay for {self.player.disk.title()} has been unset")
+                logger.success(f"Delay for {to_delete} has been unset")
         else:
             logger.debug("Delete song action was aborted")
 
@@ -355,18 +434,28 @@ class MainWindow(QMainWindow):
 
     def set_lyrics_delay(self) -> None:
         delay, _ = QInputDialog.getText(self, 'Lyrics delay', 'Set your lyrics delay')
-        key = f"{self.player.disk.song_path}.delay"
+        key = get_delay_key(self.player.disk)
         set_lyrics_delay(key, delay, config)
 
+    def edit_modes_off(self) -> None:
+        self.trim_mode = False
+        self.lyrics_mode = False
+        self.time1_lbl.setText('0.00.00')
+        self.time2_lbl.setText('0.00.00')
+        self.action_lbl.setText('')
+
     def next_song(self) -> None:
+        self.edit_modes_off()
         self.player.disk.next()
         self.update_song()
 
     def prev_song(self) -> None:
+        self.edit_modes_off()
         self.player.disk.prev()
         self.update_song()
 
     def manual_pick(self, music_container: QListWidget) -> None:
+        self.edit_modes_off()
         self.player.disk.user_pick(music_container.currentRow())
         self.update_song()
 
@@ -424,7 +513,7 @@ class MainWindow(QMainWindow):
         elif self.player.is_muted:
             self.sound.volume = 0
 
-        delay_key = f"{self.player.disk.song_path}.delay"
+        delay_key = get_delay_key(self.player.disk)
         lyric_line = self.lyrics.get_line(seconds_to_minute_format, config.get(delay_key))
         self.display_lyric(lyric_line)
 
