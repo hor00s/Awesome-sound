@@ -233,17 +233,23 @@ class MainWindow(QMainWindow):
         self.music_container.setCurrentRow(self.player.disk.song_index)
 
     def delete_lyrics(self) -> None:
-        # TODO: Lock the navigation in app's lyrics dir
-        paths = self._file_explorer_many_files(SUPPORTED_LYRICS_FORMATS)
+        key = f"songs/{self.player.disk.song_mp3}.delay"
+        path = os.path.join(LYRICS_DIR, f"{self.player.disk.title()}.srt")
+        title = "Delete lyrics"
+        msg = f"Are you sure you want to delete lyrics for {self.player.disk.title()}?"
+        q = self.askyesno(title, msg)
 
-        for path in paths:
-            song_name = path.split(os.sep)[-1]
-            song_name = song_name.replace('.srt', '.mp3')
-            key = f"songs/{song_name}.delay"
-            if key in config:
-                config.remove_key(key)
-            os.remove(path)
-            logger.debug(f"Lyrics for {self.player.disk.title()} has been removed")
+        if q:
+            if os.path.exists(path):
+                os.remove(path)
+                logger.success(f"Lyrics for {self.player.disk.title()} was removed")
+                if key in config:
+                    logger.success(f"Delay for {self.player.disk.title()} has been unset")
+                    config.remove_key(key)
+            else:
+                logger.info(f"No lyrics found for song {self.player.disk.title()}")
+        else:
+            logger.info("Delete lyrics aborted")
 
     def set_title(self) -> None:
         if self.player.is_muted:
@@ -273,12 +279,12 @@ class MainWindow(QMainWindow):
         paths, _ = QFileDialog.getOpenFileNames(self, "Choose files", "", types)
         return paths
 
-    def askyesno(self, msg: str) -> bool:
+    def askyesno(self, title: str, msg: str) -> bool:
         replies = {
             16384: True,
             65536: False,
         }
-        reply = QMessageBox.question(self, 'Delete song', msg,
+        reply = QMessageBox.question(self, title, msg,
                                      QMessageBox.Yes | QMessageBox.No)  # type: ignore
         return replies[reply]
 
@@ -315,10 +321,16 @@ class MainWindow(QMainWindow):
 
     def delete_song(self) -> None:
         prompt = f"Are you sure you want to delete {self.player.disk.title()}?"
-        reply = self.askyesno(prompt)
+        title = "Delete song"
+        reply = self.askyesno(title, prompt)
         if reply:
             delete_song(SONGS_DIR, self.player.disk.song_mp3)
             self.update_song_list(deletion=True)
+            logger.success(f"Song {self.player.disk.title()} has been deleted")
+            key = f"{self.player.disk.song_mp3}.delay"
+            if key in config:
+                config.remove_key(key)
+                logger.success(f"Delay for {self.player.disk.title()} has been unset")
         else:
             logger.debug("Delete song action was aborted")
 
