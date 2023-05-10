@@ -370,6 +370,7 @@ class MainWindow(QMainWindow):
                 logger.info(f"No lyrics found for song {self.player.disk.title()}")
         else:
             logger.info("Delete lyrics aborted")
+        self.update_song()
 
     def set_title(self) -> None:
         if self.player.is_muted:
@@ -388,6 +389,8 @@ class MainWindow(QMainWindow):
         except FileNotFoundError:
             logger.warning(f"{get_datetime()} File manager closed unexpectedly")
             # The file explorer was probably closed
+        else:
+            self.update_song()
 
     def _file_explorer_one_file(self, file_types: Iterable[str]) -> str:
         types = make_file_types(file_types)
