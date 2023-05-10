@@ -1,5 +1,6 @@
 import unittest
 import os
+import shutil
 from comps import (
     MusicPlayer,
     Disk,
@@ -27,10 +28,14 @@ from .uiactions import (
     rename,
 )
 
+BASE_TEST_DIR = os.path.join(BASE_DIR, 'player', 'window' '.ui_test_dir')
+if os.path.exists(BASE_TEST_DIR):
+    shutil.rmtree(BASE_TEST_DIR)
+os.mkdir(BASE_TEST_DIR)
 
-test_lyrics_dir = os.path.join(BASE_DIR, 'player', 'window', '.test_lyrics_dir')
-test_songs_dir = os.path.join(BASE_DIR, 'player', 'window', '.test_songs_dir')
-test_lyrics_file = os.path.join(BASE_DIR, '.test_lyrics.srt')
+test_lyrics_dir = os.path.join(BASE_TEST_DIR, '.test_lyrics_dir')
+test_songs_dir = os.path.join(BASE_TEST_DIR, '.test_songs_dir')
+test_lyrics_file = os.path.join(BASE_TEST_DIR, '.test_lyrics.srt')
 
 if not os.path.exists(test_songs_dir):
     os.mkdir(test_songs_dir)
@@ -40,7 +45,7 @@ if not os.path.exists(test_lyrics_file):
     with open(test_lyrics_file, mode='w') as _:
         ...
 
-test_config_file = os.path.join(BASE_DIR, 'player', 'window', '.test_config.json')
+test_config_file = os.path.join(BASE_TEST_DIR, '.test_config.json')
 EXTENSION = 'srt'
 
 TEST_CONFIG = {

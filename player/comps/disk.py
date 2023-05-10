@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from actions import BASE_DIR
 from typing import (
     Tuple,
     Any,
@@ -75,7 +76,7 @@ class Disk:
         Example: `songs/Gustavo Santaolalla - Babel (Trap Remix).mp3`
         TODO: Change this when relative paths are fixed
         """
-        return os.path.join('songs', self.song_mp3)
+        return os.path.join(BASE_DIR, 'player', 'songs', self.song_mp3)
 
     @property
     def song_list(self) -> Tuple[str, ...]:
