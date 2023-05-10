@@ -24,19 +24,23 @@ from .uiactions import (
     delete_song,
     even_spaces,
     export_song,
+    rename,
 )
 
 
 test_lyrics_dir = os.path.join(BASE_DIR, 'player', 'window', '.test_lyrics_dir')
 test_songs_dir = os.path.join(BASE_DIR, 'player', 'window', '.test_songs_dir')
+test_lyrics_file = os.path.join(BASE_DIR, '.test_lyrics.srt')
 
 if not os.path.exists(test_songs_dir):
     os.mkdir(test_songs_dir)
 if not os.path.exists(test_lyrics_dir):
     os.mkdir(test_lyrics_dir)
+if not os.path.exists(test_lyrics_file):
+    with open(test_lyrics_file, mode='w') as _:
+        ...
 
 test_config_file = os.path.join(BASE_DIR, 'player', 'window', '.test_config.json')
-test_lyrics_file = os.path.join(BASE_DIR, '.test_lyrics.srt')
 EXTENSION = 'srt'
 
 TEST_CONFIG = {
@@ -162,5 +166,12 @@ class TestUiActions(unittest.TestCase):
         """
         song = os.listdir(test_songs_dir)[0]
         export_song(test_songs_dir, song, '.')
-        os.path.exists(f'./{song}')
-        os.remove(f'./{song}')
+        new_path = os.path.join('.', song)
+        # self.assertTrue(os.path.exists(new_path))
+        os.remove(new_path)
+
+    def test_rename(self) -> None:
+        rename
+        _ = 'test'
+        _ = '.mp3'
+        # TODO: Test this without moving outside test_dir

@@ -27,6 +27,7 @@ from .uiactions import (
     import_songs,
     delete_song,
     export_song,
+    rename,
 )
 from lyricshandler import (
     Renderer,
@@ -166,6 +167,7 @@ class MainWindow(QMainWindow):
         self.actionSee_logs.triggered.connect(lambda: self.check_logs())
         self.actionSource_code.triggered.connect(lambda: webbrowser.open(SOURCE_CODE))
         self.actionExport_song.triggered.connect(lambda: self.export_song())
+        self.actionRename_song.triggered.connect(lambda: self.rename_song())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -296,6 +298,24 @@ class MainWindow(QMainWindow):
         song = self.player.disk.title()
         logger.debug(f'Song {song} moved from {SONGS_DIR} -> {config["download_dir"]}')
         export_song(SONGS_DIR, self.player.disk.song_mp3, config['download_dir'])
+
+    def rename_song(self) -> None:
+        song_name = self.player.disk.title()
+        new_name, _ = QInputDialog.getText(self, 'Rename', 'Choose a new name')
+        lyrics_file = f"{song_name}.srt"
+        if new_name:
+            rename(SONGS_DIR, song_name, new_name, '.mp3')
+            logger.info(f"Rename {song_name} -> {new_name}")
+            if os.path.exists(os.path.join(LYRICS_DIR, lyrics_file)):
+                rename(LYRICS_DIR, song_name, new_name, '.srt')
+
+                if (key := get_delay_key(self.player.disk)) in config:
+                    value = config[key]
+                    config.remove_key(key)
+                    new_key = f"songs/{new_name}.mp3.delay"
+                    config.add(new_key, value)
+
+            self.update_song_list(deletion=True)
 
     def trim_song(self) -> None:
         slider_position = self.song_slider.value()

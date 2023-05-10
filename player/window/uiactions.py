@@ -226,8 +226,8 @@ def delete_song(path: str, song_name: str) -> None:
     os.remove(song_path)
 
 
-def export_song(path: str, song_name: str, target_dir: str) -> None:
-    src = os.path.join(path, song_name)
+def export_song(path: str, song_mp3: str, target_dir: str) -> None:
+    src = os.path.join(path, song_mp3)
     shutil.copy(src, target_dir)
     # TODO: Test
 
@@ -262,3 +262,10 @@ def even_spaces(first_word: str, space_buffer: int) -> str:
     """
     spaces = space_buffer - len(first_word)
     return " " * spaces
+
+
+def rename(path: str, file_name: str, new_name: str, extension: str) -> None:
+    # TODO: Test
+    src = os.path.join(path, file_name + extension)
+    dst = os.path.join(path, f"{new_name}{extension}")
+    os.rename(src, dst)
