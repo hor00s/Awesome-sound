@@ -226,6 +226,12 @@ def delete_song(path: str, song_name: str) -> None:
     os.remove(song_path)
 
 
+def export_song(path: str, song_name: str, target_dir: str) -> None:
+    src = os.path.join(path, song_name)
+    shutil.copy(src, target_dir)
+    # TODO: Test
+
+
 def even_spaces(first_word: str, space_buffer: int) -> str:
     """Give a fixed ammount of spaces of a given word. Example
         ```

@@ -21,6 +21,8 @@ __all__ = (
     'MUTE_BTN',
     'RECORD_BTN',
     'BACKGROUND',
+    'BACKWARD_ARR',
+    'FORWARD_ARR',
     'LOGO',
     'PLAYERUI',
     'FPS',
@@ -63,6 +65,8 @@ NEXT_BTN: str = os.path.join('images', 'next-button.png')
 MUTE_BTN: str = os.path.join('images', 'mute-button.png')
 RECORD_BTN: str = os.path.join('images', 'record.png')
 BACKGROUND: str = os.path.join('images', 'background.png')
+BACKWARD_ARR: str = os.path.join('images', 'backward-arr.png')
+FORWARD_ARR: str = os.path.join('images', 'forward-arr.png')
 LOGO: str = os.path.join('images', 'applogo.png')
 PLAYERUI: str = os.path.join('window', 'player.ui')
 CONFIG_FILE = os.path.join(BASE_DIR, '.config.json')

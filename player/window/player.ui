@@ -256,7 +256,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="step_forw_btn">
+   <widget class="QPushButton" name="forward_btn">
     <property name="geometry">
      <rect>
       <x>190</x>
@@ -272,7 +272,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="step_back_btn">
+   <widget class="QPushButton" name="backward_btn">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -302,8 +302,8 @@
    <zorder>current_playing_lbl</zorder>
    <zorder>mute_btn</zorder>
    <zorder>rec_btn</zorder>
-   <zorder>step_forw_btn</zorder>
-   <zorder>step_back_btn</zorder>
+   <zorder>forward_btn</zorder>
+   <zorder>backward_btn</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -320,6 +320,7 @@
     </property>
     <addaction name="actionImport_songs"/>
     <addaction name="actionDelete_song"/>
+    <addaction name="actionExport_song"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -410,6 +411,11 @@
   <action name="actionSource_code">
    <property name="text">
     <string>Source code</string>
+   </property>
+  </action>
+  <action name="actionExport_song">
+   <property name="text">
+    <string>Export song</string>
    </property>
   </action>
  </widget>

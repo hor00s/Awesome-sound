@@ -1,6 +1,5 @@
 import unittest
 import os
-import shutil
 from comps import (
     MusicPlayer,
     Disk,
@@ -24,6 +23,7 @@ from .uiactions import (
     import_songs,
     delete_song,
     even_spaces,
+    export_song,
 )
 
 
@@ -142,7 +142,6 @@ class TestUiActions(unittest.TestCase):
         import_songs(path_list, test_songs_dir)
         result = os.listdir(test_songs_dir)
         self.assertEqual(songs, result)
-        shutil.rmtree(test_songs_dir)
 
     def test_delete_song(self) -> None:
         # TODO: Find a way to test this without deleteing
@@ -156,3 +155,12 @@ class TestUiActions(unittest.TestCase):
 
         output = f"{first_word}{spaced}{second_word}"
         self.assertEqual(output, expected)
+
+    def test_export_song(self) -> None:
+        """Copy a song from the local file system to
+        a user defined directory anywhere outside
+        """
+        song = os.listdir(test_songs_dir)[0]
+        export_song(test_songs_dir, song, '.')
+        os.path.exists(f'./{song}')
+        os.remove(f'./{song}')

@@ -26,6 +26,7 @@ from .uiactions import (
     edit_volume,
     import_songs,
     delete_song,
+    export_song,
 )
 from lyricshandler import (
     Renderer,
@@ -40,13 +41,15 @@ from actions import (
     NEXT_BTN,
     PLAY_BTN,
     MUTE_BTN,
+    SHORTCUTS,
     SONGS_DIR,
     PAUSE_BTN,
-    RECORD_BTN,
-    SHORTCUTS,
     LYRICS_DIR,
+    RECORD_BTN,
     BACKGROUND,
+    FORWARD_ARR,
     SOURCE_CODE,
+    BACKWARD_ARR,
     PREVIOUS_BTN,
     SUPPORTED_SONG_FORMATS,
     SUPPORTED_LYRICS_FORMATS,
@@ -126,6 +129,8 @@ class MainWindow(QMainWindow):
             lambda: self.move_song(self.song_slider.value() / 60)
         )
         self.rec_btn.clicked.connect(lambda: self.trim_song())
+        self.forward_btn.clicked.connect(lambda: self.small_step(1))  # seconds
+        self.backward_btn.clicked.connect(lambda: self.small_step(- 1))  # seconds
 
         last_song = config.get('last_song')
         if last_song:
@@ -160,6 +165,7 @@ class MainWindow(QMainWindow):
         self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
         self.actionSee_logs.triggered.connect(lambda: self.check_logs())
         self.actionSource_code.triggered.connect(lambda: webbrowser.open(SOURCE_CODE))
+        self.actionExport_song.triggered.connect(lambda: self.export_song())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -182,18 +188,24 @@ class MainWindow(QMainWindow):
         self.play_btn = self.findChild(QPushButton, 'play_btn')
         self.mute_btn = self.findChild(QPushButton, 'mute_btn')
         self.rec_btn = self.findChild(QPushButton, 'rec_btn')
+        self.backward_btn = self.findChild(QPushButton, 'backward_btn')
+        self.forward_btn = self.findChild(QPushButton, 'forward_btn')
 
         self.prev_btn.setIcon(QtGui.QIcon(PREVIOUS_BTN))
         self.rec_btn.setIcon(QtGui.QIcon(RECORD_BTN))
         self.next_btn.setIcon(QtGui.QIcon(NEXT_BTN))
         self.play_btn.setIcon(QtGui.QIcon(PLAY_BTN))
         self.mute_btn.setIcon(QtGui.QIcon(MUTE_BTN))
+        self.backward_btn.setIcon(QtGui.QIcon(BACKWARD_ARR))
+        self.forward_btn.setIcon(QtGui.QIcon(FORWARD_ARR))
 
+        self.rec_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.prev_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.next_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.play_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.mute_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
-        self.rec_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.forward_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.backward_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
 
     def _load_sliders(self) -> None:
         self.song_slider = self.findChild(QSlider, 'music_prog_bar')
@@ -273,8 +285,17 @@ class MainWindow(QMainWindow):
         self.time2_lbl.setText(end)
         self.action_lbl.setText(action)
 
+    def small_step(self, step: int) -> None:
+        current_seconds = self.song_slider.value() / 60
+        self.sound.seek(current_seconds + step)
+
     def valid_timestamps(self, time1: datetime.timedelta, time2: datetime.timedelta) -> bool:
         return time1 < time2
+
+    def export_song(self) -> None:
+        song = self.player.disk.title()
+        logger.debug(f'Song {song} moved from {SONGS_DIR} -> {config["download_dir"]}')
+        export_song(SONGS_DIR, self.player.disk.song_mp3, config['download_dir'])
 
     def trim_song(self) -> None:
         slider_position = self.song_slider.value()
