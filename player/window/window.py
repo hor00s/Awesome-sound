@@ -161,13 +161,14 @@ class MainWindow(QMainWindow):
             lambda: self.import_songs()
         )
         self.actionDelete_song.triggered.connect(lambda: self.delete_song())
-        self.actionClear_logs.triggered.connect(lambda: logger.clear())
-        self.actionReset.triggered.connect(lambda: config.restore_default())
+        self.actionClear_logs.triggered.connect(lambda: self.clear_logs())
+        self.actionReset.triggered.connect(lambda: self.restore_settings())
         self.actionDelete.triggered.connect(lambda: self.delete_lyrics())
         self.actionSee_logs.triggered.connect(lambda: self.check_logs())
         self.actionSource_code.triggered.connect(lambda: webbrowser.open(SOURCE_CODE))
         self.actionExport_song.triggered.connect(lambda: self.export_song())
         self.actionRename_song.triggered.connect(lambda: self.rename_song())
+        self.actionChange_download_dir.triggered.connect(lambda: self.change_download_dir())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -294,6 +295,16 @@ class MainWindow(QMainWindow):
     def valid_timestamps(self, time1: datetime.timedelta, time2: datetime.timedelta) -> bool:
         return time1 < time2
 
+    def clear_logs(self) -> None:
+        q = self.askyesno("Clear logs", "Are you sure you want to clear all app's logs?")
+        if q:
+            logger.clear()
+
+    def restore_settings(self) -> None:
+        q = self.askyesno("Restore settings", "Are you sure you want to restore app's settings?")
+        if q:
+            config.restore_default()
+
     def export_song(self) -> None:
         song = self.player.disk.title()
         logger.debug(f'Song {song} moved from {SONGS_DIR} -> {config["download_dir"]}')
@@ -319,6 +330,15 @@ class MainWindow(QMainWindow):
             self.update_song_list(deletion=True)
             self.next_song()
 
+    def change_download_dir(self) -> None:
+        prev_dir = config['download_dir']
+        new_dir = QFileDialog.getExistingDirectory(self, "Choose target directory")
+        if new_dir:
+            config.edit('download_dir', new_dir)
+            logger.info(f"Download directory {prev_dir} -> {new_dir}")
+        else:
+            logger.warning('Change download directory has been canceled')
+
     def trim_song(self) -> None:
         slider_position = self.song_slider.value()
 
@@ -327,6 +347,7 @@ class MainWindow(QMainWindow):
             self.time1_lbl.setText(str(self.timestamp_start))
             self.trim_mode = True
             self.action_lbl.setText('Trim mode')
+            logger.info('Trim mode `On`')
         elif self.trim_mode:
             self.timestamp_stop = datetime.timedelta(seconds=slider_position)
             self.time2_lbl.setText(str(self.timestamp_stop))
@@ -346,11 +367,11 @@ class MainWindow(QMainWindow):
                 # FIXME: This crashes if a song can't be trimmed
                 # TODO: Use status bar to show such errors for x seconds
                 song = self.player.disk.title()
-                msg = f"Song {song} has been trimmed from `{start / 1000} - {stop / 1000}`"
+                msg = f"Song {song} has been trimmed from `{start / 1000:.3f} - {stop / 1000:.3f}`"
+                logger.info('Trim mode `Off`')
                 logger.success(msg)
-                return
-
-        logger.warning("Trim has been abborted")
+        else:
+            logger.warning("Trim has been abborted")
 
     def delete_lyrics(self) -> None:
         key = get_delay_key(self.player.disk)

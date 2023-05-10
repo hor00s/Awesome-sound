@@ -322,6 +322,7 @@
     <addaction name="actionDelete_song"/>
     <addaction name="actionExport_song"/>
     <addaction name="actionRename_song"/>
+    <addaction name="actionChange_download_dir"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -422,6 +423,11 @@
   <action name="actionRename_song">
    <property name="text">
     <string>Rename song</string>
+   </property>
+  </action>
+  <action name="actionChange_download_dir">
+   <property name="text">
+    <string>Change download dir</string>
    </property>
   </action>
  </widget>
