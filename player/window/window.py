@@ -301,9 +301,10 @@ class MainWindow(QMainWindow):
 
     def rename_song(self) -> None:
         song_name = self.player.disk.title()
-        new_name, _ = QInputDialog.getText(self, 'Rename', 'Choose a new name')
+        new_name, q = QInputDialog.getText(self, 'Rename', 'Choose a new name', text=song_name)
+
         lyrics_file = f"{song_name}.srt"
-        if new_name:
+        if new_name and q:
             rename(SONGS_DIR, song_name, new_name, '.mp3')
             logger.info(f"Rename {song_name} -> {new_name}")
             if os.path.exists(os.path.join(LYRICS_DIR, lyrics_file)):
@@ -316,6 +317,7 @@ class MainWindow(QMainWindow):
                     config.add(new_key, value)
 
             self.update_song_list(deletion=True)
+            self.next_song()
 
     def trim_song(self) -> None:
         slider_position = self.song_slider.value()

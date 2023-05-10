@@ -164,8 +164,8 @@ class TestUiActions(unittest.TestCase):
         """Copy a song from the local file system to
         a user defined directory anywhere outside
         """
-        song = os.listdir(test_songs_dir)[0]
-        export_song(test_songs_dir, song, '.')
+        song = os.listdir(SONGS_DIR)[0]
+        export_song(SONGS_DIR, song, '.')
         new_path = os.path.join('.', song)
         # self.assertTrue(os.path.exists(new_path))
         os.remove(new_path)
