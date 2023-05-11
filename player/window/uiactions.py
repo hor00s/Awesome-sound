@@ -6,6 +6,7 @@ from lyricshandler import Creator
 from jsonwrapper import Handler
 from typing import (
     List,
+    Tuple,
     Union,
     Iterable,
 )
@@ -14,9 +15,7 @@ from comps import (
     MusicPlayer
 )
 from actions import (
-    SONGS_DIR,
     logger,
-    get_song_list,
 )
 
 
@@ -53,7 +52,7 @@ def get_datetime() -> datetime.datetime:
     return datetime.datetime.now()
 
 
-def get_disk(config: Handler) -> Disk:
+def get_disk(config: Handler, song_list: Tuple[str, ...]) -> Disk:
     """Check if a `last_song` exists in app's config and construct
     a new `Disk` object with a refreshed song list and `last_song`
     if it exists, default song otherwise
@@ -65,8 +64,8 @@ def get_disk(config: Handler) -> Disk:
     """
     last_song = config.get('last_song')
     if last_song:
-        return Disk(get_song_list(SONGS_DIR), last_song['song'])
-    return Disk(get_song_list(SONGS_DIR))
+        return Disk(song_list, last_song['song'])
+    return Disk(song_list)
 
 
 def get_lyrics_file(lyrics_dir: str, player: MusicPlayer, extension: str) -> str:
@@ -266,7 +265,38 @@ def even_spaces(first_word: str, space_buffer: int) -> str:
 
 
 def rename(path: str, file_name: str, new_name: str, extension: str) -> None:
-    # TODO: Test
+    """This function can rename a song preserving its position and extension automatically
+
+    :param path: Source path to the song that is to be renamed
+    :type path: str
+    :param file_name: The file where the source song is located
+    :type file_name: str
+    :param new_name: The name the song will be changed to (suggesting without extension)
+    :type new_name: str
+    :param extension: The extension to be inserted automatically to the new name
+    :type extension: str
+    """
     src = os.path.join(path, file_name + extension)
     dst = os.path.join(path, f"{new_name}{extension}")
     os.rename(src, dst)
+
+
+def search_song(songs: Tuple[str, ...], query: str, default_index: int) -> int:
+    """Find the first match in a list from the query
+
+    :param songs: A list of potentional matches
+    :type songs: Tuple[str, ...]
+    :param query: A text that the search will be based on
+    :type query: str
+    :param default_index: A default index that will be returned if no matches are found
+    :type default_index: int
+    :raises IndexError: In case the `default_index` is >= len(songs)
+    :return: The first match of the query or `default_index` if no matches are found
+    :rtype: int
+    """
+    if default_index >= len(songs):
+        raise IndexError("`default_index` is out of range of `songs`")
+    for index, song in enumerate(songs):
+        if query.lower() in song.lower():
+            return index
+    return default_index

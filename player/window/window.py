@@ -10,6 +10,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5 import uic, QtGui
 from typing import (
     Iterable,
+    Tuple,
     Union,
     List,
     Any,
@@ -28,6 +29,7 @@ from .uiactions import (
     delete_song,
     export_song,
     rename,
+    search_song,
 )
 from lyricshandler import (
     Renderer,
@@ -54,6 +56,7 @@ from actions import (
     PREVIOUS_BTN,
     SUPPORTED_SONG_FORMATS,
     SUPPORTED_LYRICS_FORMATS,
+    get_song_list,
     logger,
     config,
 )
@@ -63,6 +66,7 @@ from .customwidgets import (
 from PyQt5.QtWidgets import (
     QLabel,
     QSlider,
+    QLineEdit,
     QShortcut,
     QStatusBar,
     QMainWindow,
@@ -71,6 +75,7 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QMessageBox,
     QInputDialog,
+    QApplication,
 )
 
 
@@ -82,7 +87,8 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
         logger.info(f"{get_datetime()} Initializing application")
-        self.player = MusicPlayer(get_disk(config), config.get('is_muted'), config.get('volume'))
+        self.player = MusicPlayer(get_disk(config, get_song_list(SONGS_DIR)),
+                                  config.get('is_muted'), config.get('volume'))
 
         self.trim_mode = False
         self.lyrics_mode = False
@@ -103,6 +109,7 @@ class MainWindow(QMainWindow):
         self._load_lists()
         self._load_btns()
         self._load_status_bar()
+        self._load_line_edits()
 
         # Set UI
         self.play_btn.setIcon(QtGui.QIcon(self.play_btn_switcher()))
@@ -132,18 +139,20 @@ class MainWindow(QMainWindow):
         self.rec_btn.clicked.connect(lambda: self.trim_song())
         self.forward_btn.clicked.connect(lambda: self.small_step(1))  # seconds
         self.backward_btn.clicked.connect(lambda: self.small_step(- 1))  # seconds
+        self.search_ln.textChanged.connect(lambda: self.search_song())
 
         last_song = config.get('last_song')
         if last_song:
             self.move_song(last_song['timestamp'])
 
         # Key binds
-        self.play_shortcut = QShortcut(QKeySequence(SHORTCUTS['PLAY-PAUSE']), self)
+        self.mute_shortcut = QShortcut(QKeySequence(SHORTCUTS['MUTE']), self)
         self.next_shortcut = QShortcut(QKeySequence(SHORTCUTS['NEXT SONG']), self)
         self.prev_shortcut = QShortcut(QKeySequence(SHORTCUTS['PREV SONG']), self)
-        self.mute_shortcut = QShortcut(QKeySequence(SHORTCUTS['MUTE']), self)
-        self.delete_song_shortcut = QShortcut(QKeySequence(SHORTCUTS['DELETE SONG']), self)
+        self.play_shortcut = QShortcut(QKeySequence(SHORTCUTS['PLAY-PAUSE']), self)
         self.trim_shortcut = QShortcut(QKeySequence(SHORTCUTS['TRIM TRIGGER']), self)
+        self.delete_song_shortcut = QShortcut(QKeySequence(SHORTCUTS['DELETE SONG']), self)
+        self.main_window_focus = QShortcut(QKeySequence(SHORTCUTS['MAIN WINDOW FOCUS']), self)
 
         self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())  # type: ignore
         self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
@@ -151,6 +160,9 @@ class MainWindow(QMainWindow):
         self.mute_shortcut.activated.connect(lambda: self.mute_player())  # type: ignore
         self.delete_song_shortcut.activated.connect(lambda: self.delete_song())  # type: ignore
         self.trim_shortcut.activated.connect(lambda: self.trim_song())  # type: ignore
+        self.main_window_focus.activated.connect(  # type: ignore
+            lambda: QApplication.activeWindow().setFocus()
+        )
 
         # Menu actions
         self.actionChoose_file.triggered.connect(lambda: self.save_lyric_file())
@@ -209,6 +221,10 @@ class MainWindow(QMainWindow):
         self.mute_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.forward_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.backward_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+
+    def _load_line_edits(self) -> None:
+        self.search_ln = self.findChild(QLineEdit, 'search_query_ln')
+        self.search_ln.setPlaceholderText("Search song...")
 
     def _load_sliders(self) -> None:
         self.song_slider = self.findChild(QSlider, 'music_prog_bar')
@@ -327,8 +343,7 @@ class MainWindow(QMainWindow):
                     new_key = f"songs/{new_name}.mp3.delay"
                     config.add(new_key, value)
 
-            self.update_song_list(deletion=True)
-            self.next_song()
+            self.update_song_list(get_song_list(SONGS_DIR), deletion=True)
 
     def change_download_dir(self) -> None:
         prev_dir = config['download_dir']
@@ -362,7 +377,7 @@ class MainWindow(QMainWindow):
                 export_dir = os.path.join(config['download_dir'], trimmed_name)
                 extract.export(export_dir)
                 import_songs([export_dir], SONGS_DIR)
-                self.update_song_list()
+                self.update_song_list(get_song_list(SONGS_DIR))
                 # TODO: Reset status bar after x seconds
                 # FIXME: This crashes if a song can't be trimmed
                 # TODO: Use status bar to show such errors for x seconds
@@ -423,6 +438,16 @@ class MainWindow(QMainWindow):
         paths, _ = QFileDialog.getOpenFileNames(self, "Choose files", "", types)
         return paths
 
+    def search_song(self) -> None:
+        text = self.search_ln.text()
+        if text:
+            songs = self.player.disk.song_list
+            current_index = self.player.disk.song_index
+            found_index = search_song(songs, text, current_index)
+
+            self.music_container.setCurrentRow(found_index)
+            self.manual_pick(self.music_container)
+
     def askyesno(self, title: str, msg: str) -> bool:
         replies = {
             16384: True,
@@ -451,16 +476,16 @@ class MainWindow(QMainWindow):
         res = ScrollMessageBox('Shortcuts', msg, w_width, w_height, QtGui.QIcon(LOGO))
         res.exec_()
 
-    def update_song_list(self, deletion: bool = False) -> None:
+    def update_song_list(self, song_list: Tuple[str, ...], deletion: bool = False) -> None:
         config.edit('last_song', {})
-        self.player.change_disk(get_disk(config), deletion)
+        self.player.change_disk(get_disk(config, song_list), deletion)
         self._fill_list_widget()
         # Set 'last_song' to `{}` after importing new and changing the `disk` for safety
 
     def import_songs(self) -> None:
         paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
         import_songs(paths, SONGS_DIR)
-        self.update_song_list()
+        self.update_song_list(get_song_list(SONGS_DIR))
 
     def delete_song(self) -> None:
         prompt = f"Are you sure you want to delete {self.player.disk.title()}?"
@@ -469,7 +494,7 @@ class MainWindow(QMainWindow):
         if reply:
             to_delete = self.player.disk.song_mp3
             delete_song(SONGS_DIR, to_delete)
-            self.update_song_list(deletion=True)
+            self.update_song_list(get_song_list(SONGS_DIR), deletion=True)
             self.next_song()
             logger.success(f"Song {to_delete} has been deleted")
             key = get_delay_key(self.player.disk)

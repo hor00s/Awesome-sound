@@ -49,7 +49,7 @@ def lyrics_dir(base_dir: Path) -> str:
 
 
 def get_song_list(song_dir: str) -> Tuple[str, ...]:
-    return tuple(filter(lambda i: i != '.gitignore', os.listdir(song_dir)))
+    return tuple(sorted(filter(lambda i: i != '.gitignore', os.listdir(song_dir))))
 
 
 FpsLike = Callable[[int], int]
@@ -83,6 +83,7 @@ VERISONS: Tuple[str, ...] = (
     'v.0.9',
     'v.1.0',
     'v.1.1',
+    'v.1.2',
 )
 
 SHORTCUTS: Dict[str, str] = {
@@ -92,6 +93,7 @@ SHORTCUTS: Dict[str, str] = {
     'DELETE SONG': 'del',
     'MUTE': 'm',
     'TRIM TRIGGER': 't',
+    'MAIN WINDOW FOCUS': 'esc',
 }
 
 CONFIG: Dict[Any, Any] = {

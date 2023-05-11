@@ -103,9 +103,9 @@
     <property name="geometry">
      <rect>
       <x>380</x>
-      <y>10</y>
+      <y>40</y>
       <width>161</width>
-      <height>491</height>
+      <height>461</height>
      </rect>
     </property>
     <property name="font">
@@ -288,6 +288,16 @@
      <string/>
     </property>
    </widget>
+   <widget class="QLineEdit" name="search_query_ln">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>10</y>
+      <width>161</width>
+      <height>30</height>
+     </rect>
+    </property>
+   </widget>
    <zorder>bg_lbl</zorder>
    <zorder>music_prog_bar</zorder>
    <zorder>volume_bar</zorder>
@@ -304,6 +314,7 @@
    <zorder>rec_btn</zorder>
    <zorder>forward_btn</zorder>
    <zorder>backward_btn</zorder>
+   <zorder>search_query_ln</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

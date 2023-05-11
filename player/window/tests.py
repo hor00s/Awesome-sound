@@ -26,6 +26,7 @@ from .uiactions import (
     even_spaces,
     export_song,
     rename,
+    search_song,
 )
 
 BASE_TEST_DIR = os.path.join(BASE_DIR, 'player', 'window' '.ui_test_dir')
@@ -74,7 +75,7 @@ class TestUiActions(unittest.TestCase):
         # Test with default song
         index = 0
         songs = get_song_list(SONGS_DIR)
-        disk = get_disk(test_config)
+        disk = get_disk(test_config, songs)
         self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
 
@@ -85,7 +86,7 @@ class TestUiActions(unittest.TestCase):
         os.remove(test_config._file)
         test_config._config = CONFIG
         test_config.init()
-        disk = get_disk(test_config)
+        disk = get_disk(test_config, songs)
         songs = get_song_list(SONGS_DIR)
         self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
@@ -149,7 +150,8 @@ class TestUiActions(unittest.TestCase):
         path_list = list(map(lambda song: os.path.join(SONGS_DIR, song), songs))
 
         import_songs(path_list, test_songs_dir)
-        result = os.listdir(test_songs_dir)
+        result = sorted(os.listdir(test_songs_dir))
+
         self.assertEqual(songs, result)
 
     def test_delete_song(self) -> None:
@@ -180,3 +182,32 @@ class TestUiActions(unittest.TestCase):
         _ = 'test'
         _ = '.mp3'
         # TODO: Test this without moving outside test_dir
+
+    def test_search_songs(self) -> None:
+        songs = (
+            'a',
+            'a',
+            'b',
+            'b',
+            'c',
+            'c',
+            'd',
+            'd',
+            'e',
+            'e',
+            'f',
+            'f',
+        )
+
+        default = 0
+        result = search_song(songs, 'b', default)
+        expected = 2
+        self.assertEqual(result, expected)
+
+        default = 3
+        result = search_song(songs, '...', default)
+        self.assertEqual(result, default)
+
+        with self.assertRaises(IndexError):
+            default = len(songs)
+            result = search_song(songs, '...', default)
