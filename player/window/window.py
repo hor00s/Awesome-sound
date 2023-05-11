@@ -436,9 +436,8 @@ class MainWindow(QMainWindow):
         w_width, w_height = 500, 600
         if logger.log_path is not None:
             with open(logger.log_path, mode='r') as f:
-                logs = f.read().split('\n')
+                logs = f.read()
 
-            logs.reverse()
             res = ScrollMessageBox('Logs', logs, w_width, w_height, QtGui.QIcon(LOGO))
             res.exec_()
         else:
@@ -446,9 +445,9 @@ class MainWindow(QMainWindow):
 
     def shortcuts_help(self) -> None:
         w_width, w_height = 150, 300
-        msg = []
+        msg = ""
         for bind, key in SHORTCUTS.items():
-            msg.append(f"{bind} ~> {key}")
+            msg += f"{bind} ~> {key}\n"
         res = ScrollMessageBox('Shortcuts', msg, w_width, w_height, QtGui.QIcon(LOGO))
         res.exec_()
 
