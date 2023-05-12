@@ -236,18 +236,47 @@ class MainWindow(QMainWindow):
         self.total_time_lbl = self.findChild(QLabel, 'total_time_lbl')
         self.volume_lbl = self.findChild(QLabel, 'volume_lbl')
         self.lyrics_lbl = self.findChild(QLabel, 'lyrics_lbl')
+        self.popup_lbl = self.findChild(QLabel, 'pop_up_lbl')
         self.bg_lbl = self.findChild(QLabel, 'bg_lbl')
 
         self.lyrics_lbl.setStyleSheet(
             'color: white; font-weight: bold;\
             font-size: 20px; background-color: rgba(255, 255, 255, 0);'
         )
+        self.popup_lbl.setStyleSheet("background-color: gray;")
         self.bg_lbl.setStyleSheet(f"background-image : url({BACKGROUND})")
         self.current_playing_lbl.setStyleSheet(f'color: {THEMECLR};')
         self.current_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.total_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.volume_lbl.setStyleSheet((f'color: {THEMECLR};'))
+        self.popup_lbl.setStyleSheet('''
+            QLabel {
+                color: #fff;
+                background-color: #333;
+                border-radius: 10px;
+                padding: 5px;
+                font-size: 15px;
+                border: 2px solid #555;
+            }
+            QLabel:hover {
+                background-color: #444;
+            }
+        ''')
+
         self.current_playing_lbl.setWordWrap(True)
+        self.popup_lbl.hide()
+
+    def _show_popup(self, msg: str, seconds: int = 3) -> None:
+        """Show the popup label at the bottom right of the window
+
+        :param msg: The message that will be displayed
+        :type msg: str
+        :param seconds: The time the popup will be active for, defaults to 3
+        :type seconds: int, optional
+        """
+        self.popup_lbl.setText(msg)
+        self.popup_lbl.show()
+        QTimer.singleShot(seconds * 1000, self.popup_lbl.hide)
 
     def _slider_pressed(self) -> None:
         """Set the self.is_pressed to `True` if the music slider is pressed
@@ -315,17 +344,20 @@ class MainWindow(QMainWindow):
         q = self.askyesno("Clear logs", "Are you sure you want to clear all app's logs?")
         if q:
             logger.clear()
+            self._show_popup("Logs have been cleared")
 
     def restore_settings(self) -> None:
         q = self.askyesno("Restore settings", "Are you sure you want to restore app's settings?")
         if q:
             config.restore_default()
             logger.info(f"{get_datetime()} Settings have been restored")
+            self._show_popup("Settings have been restored")
 
     def export_song(self) -> None:
         song = self.player.disk.title()
         logger.debug(f'Song {song} moved from {SONGS_DIR} -> {config["download_dir"]}')
         export_song(SONGS_DIR, self.player.disk.song_mp3, config['download_dir'])
+        self._show_popup(f"Song {song} has been exported")
 
     def rename_song(self) -> None:
         song_name = self.player.disk.title()
@@ -345,6 +377,7 @@ class MainWindow(QMainWindow):
                     config.add(new_key, value)
 
             self.update_song_list(get_song_list(SONGS_DIR), deletion=True)
+            self._show_popup(f"Song {song_name} has been renamed")
 
     def change_download_dir(self) -> None:
         prev_dir = config['download_dir']
@@ -352,6 +385,7 @@ class MainWindow(QMainWindow):
         if new_dir:
             config.edit('download_dir', new_dir)
             logger.info(f"Download directory {prev_dir} -> {new_dir}")
+            self._show_popup("Donwload directory has been changed")
         else:
             logger.warning('Change download directory has been canceled')
 
@@ -379,8 +413,7 @@ class MainWindow(QMainWindow):
                 extract.export(export_dir)
                 import_songs([export_dir], SONGS_DIR)
                 self.update_song_list(get_song_list(SONGS_DIR))
-                # FIXME: This crashes if a song can't be trimmed
-                # TODO: Use status bar to show such errors for x seconds
+                # FIXME: This crashes if a song can't be trimmed. Show popup (self._show_popup)
                 song = self.player.disk.title()
                 msg = f"Song {song} has been trimmed from `{start / 1000:.3f} - {stop / 1000:.3f}`"
                 logger.info('Trim mode `Off`')
@@ -398,12 +431,16 @@ class MainWindow(QMainWindow):
         if q:
             if os.path.exists(path):
                 os.remove(path)
-                logger.success(f"Lyrics for {self.player.disk.title()} was removed")
+                log = f"Lyrics for {self.player.disk.title()} was removed"
+                logger.success(log)
+                self._show_popup(log)
                 if key in config:
                     logger.success(f"Delay for {self.player.disk.title()} has been unset")
                     config.remove_key(key)
             else:
-                logger.info(f"No lyrics found for song {self.player.disk.title()}")
+                log = f"No lyrics found for song {self.player.disk.title()}"
+                logger.info(log)
+                self._show_popup(log)
         else:
             logger.info("Delete lyrics aborted")
         self.update_song()
@@ -422,6 +459,9 @@ class MainWindow(QMainWindow):
         try:
             path = self._file_explorer_one_file(SUPPORTED_LYRICS_FORMATS)
             manual_save_lyrics(path, self.player, LYRICS_DIR)
+            log = f"Lyrics for {self.player.disk.title()} has been set"
+            logger.success(log)
+            self._show_popup(log)
         except FileNotFoundError:
             logger.warning(f"{get_datetime()} File manager closed unexpectedly")
             # The file explorer was probably closed
@@ -443,9 +483,13 @@ class MainWindow(QMainWindow):
                 self.timer.stop()
                 self.timer
             else:
-                logger.warning(f"{dt} Invalid value `{frames}` for frame rate")
+                log = f"{dt} Invalid value `{frames}` for frame rate"
+                logger.warning(log)
+                self._show_popup(log)
         else:
-            logger.warning(f"{dt} Invalid value `{frames}` for frame rate")
+            log = f"{dt} Invalid value `{frames}` for frame rate"
+            logger.warning(log)
+            self._show_popup(log)
 
     def _file_explorer_one_file(self, file_types: Iterable[str]) -> str:
         types = make_file_types(file_types)
@@ -515,11 +559,14 @@ class MainWindow(QMainWindow):
             delete_song(SONGS_DIR, to_delete)
             self.update_song_list(get_song_list(SONGS_DIR), deletion=True)
             self.next_song()
-            logger.success(f"Song {to_delete} has been deleted")
+            log = f"Song {to_delete} has been deleted"
+            logger.success(log)
+            self._show_popup(log)
             key = get_delay_key(self.player.disk)
             if key in config:
                 config.remove_key(key)
-                logger.success(f"Delay for {to_delete} has been unset")
+                log = f"Delay for {to_delete} has been unset"
+                self._show_popup(log)
         else:
             logger.debug("Delete song action was aborted")
 

@@ -298,6 +298,25 @@
      </rect>
     </property>
    </widget>
+   <widget class="QLabel" name="pop_up_lbl">
+    <property name="geometry">
+     <rect>
+      <x>360</x>
+      <y>480</y>
+      <width>181</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>test</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+   </widget>
    <zorder>bg_lbl</zorder>
    <zorder>music_prog_bar</zorder>
    <zorder>volume_bar</zorder>
@@ -315,6 +334,7 @@
    <zorder>forward_btn</zorder>
    <zorder>backward_btn</zorder>
    <zorder>search_query_ln</zorder>
+   <zorder>pop_up_lbl</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
