@@ -97,6 +97,7 @@ SHORTCUTS: Dict[str, str] = {
 }
 
 CONFIG: Dict[Any, Any] = {
+    'max_frame_rate': 20,
     'download_dir': str(DONWLOAD_DIR),
     'volume': 100,
     'is_muted': False,
@@ -113,6 +114,7 @@ SUPPORTED_LYRICS_FORMATS: Tuple[str, ...] = (
 
 # CONFIG EXAMPLE
 #  {
+#      "max_frame_rate": 20,
 #      "download_dir": "~/Downloads" (Configurable)
 #      "volume": 59,
 #      "is_muted": true,

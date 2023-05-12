@@ -181,6 +181,7 @@ class MainWindow(QMainWindow):
         self.actionExport_song.triggered.connect(lambda: self.export_song())
         self.actionRename_song.triggered.connect(lambda: self.rename_song())
         self.actionChange_download_dir.triggered.connect(lambda: self.change_download_dir())
+        self.actionMax_frame_rate.triggered.connect(lambda: self.set_frame_rate())
 
         # Dynamic updating
         timer = QTimer(self.total_time_lbl)
@@ -320,6 +321,7 @@ class MainWindow(QMainWindow):
         q = self.askyesno("Restore settings", "Are you sure you want to restore app's settings?")
         if q:
             config.restore_default()
+            logger.info(f"{get_datetime()} Settings have been restored")
 
     def export_song(self) -> None:
         song = self.player.disk.title()
@@ -427,6 +429,23 @@ class MainWindow(QMainWindow):
             # The file explorer was probably closed
         else:
             self.update_song()
+
+    def set_frame_rate(self) -> None:
+        current_frames = config.get('max_frame_rate')
+        min_frame_rate, max_frame_rate = 10, 120
+        msg = f"Set your frame rate between {min_frame_rate} - {max_frame_rate}"
+        frames, _ = QInputDialog.getText(self, "Set frame rate", msg)
+
+        dt = get_datetime()
+        if frames.isnumeric():
+            int_frames = int(frames)
+            if min_frame_rate <= int_frames <= max_frame_rate:
+                config.edit('max_frame_rate', int_frames)
+                logger.success(f"{dt} Frame rate changed `{current_frames} -> {frames}`")
+            else:
+                logger.warning(f"{dt} Invalid value `{frames}` for frame rate")
+        else:
+            logger.warning(f"{dt} Invalid value `{frames}` for frame rate")
 
     def _file_explorer_one_file(self, file_types: Iterable[str]) -> str:
         types = make_file_types(file_types)

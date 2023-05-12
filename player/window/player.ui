@@ -363,6 +363,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionReset"/>
+    <addaction name="actionMax_frame_rate"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -439,6 +440,11 @@
   <action name="actionChange_download_dir">
    <property name="text">
     <string>Change download dir</string>
+   </property>
+  </action>
+  <action name="actionMax_frame_rate">
+   <property name="text">
+    <string>Max frame rate</string>
    </property>
   </action>
  </widget>
