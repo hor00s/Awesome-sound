@@ -74,7 +74,6 @@ class Disk:
         """
         :return str: Return the full path of the current song
         Example: `songs/Gustavo Santaolalla - Babel (Trap Remix).mp3`
-        TODO: Change this when relative paths are fixed
         """
         return os.path.join(BASE_DIR, 'player', 'songs', self.song_mp3)
 
@@ -83,7 +82,6 @@ class Disk:
         """
         :return: All the songs that contained in the disk as full paths
         Example: `('Gustavo Santaolalla - Babel (Trap Remix).mp3', ...)`
-        TODO: Change this when relative paths are fixed
         :rtype: Tuple[str, ...]
         """
         return self._songs

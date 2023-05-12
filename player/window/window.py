@@ -35,7 +35,6 @@ from lyricshandler import (
     Renderer,
 )
 from actions import (
-    FPS,
     LOGO,
     TITLE,
     THEMECLR,
@@ -184,9 +183,9 @@ class MainWindow(QMainWindow):
         self.actionMax_frame_rate.triggered.connect(lambda: self.set_frame_rate())
 
         # Dynamic updating
-        timer = QTimer(self.total_time_lbl)
-        timer.timeout.connect(self.update)  # type: ignore
-        timer.start(FPS(20))
+        self.timer = QTimer(self.total_time_lbl)
+        self.timer.timeout.connect(self.update)  # type: ignore
+        self.timer.start(config.get('max_frame_rate'))
         logger.info(f"{get_datetime()} Ui set up is completed")
 
     def closeEvent(self, event: Any) -> None:
@@ -380,7 +379,6 @@ class MainWindow(QMainWindow):
                 extract.export(export_dir)
                 import_songs([export_dir], SONGS_DIR)
                 self.update_song_list(get_song_list(SONGS_DIR))
-                # TODO: Reset status bar after x seconds
                 # FIXME: This crashes if a song can't be trimmed
                 # TODO: Use status bar to show such errors for x seconds
                 song = self.player.disk.title()
@@ -442,6 +440,8 @@ class MainWindow(QMainWindow):
             if min_frame_rate <= int_frames <= max_frame_rate:
                 config.edit('max_frame_rate', int_frames)
                 logger.success(f"{dt} Frame rate changed `{current_frames} -> {frames}`")
+                self.timer.stop()
+                self.timer
             else:
                 logger.warning(f"{dt} Invalid value `{frames}` for frame rate")
         else:

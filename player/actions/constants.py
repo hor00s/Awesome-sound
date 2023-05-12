@@ -3,7 +3,6 @@ from logger import Logger
 from jsonwrapper import Handler
 from pathlib import Path
 from typing import (
-    Callable,
     Tuple,
     Dict,
     Any,
@@ -25,7 +24,6 @@ __all__ = (
     'FORWARD_ARR',
     'LOGO',
     'PLAYERUI',
-    'FPS',
     'LYRICS_DIR',
     'THEMECLR',
     'TITLE',
@@ -52,8 +50,6 @@ def get_song_list(song_dir: str) -> Tuple[str, ...]:
     return tuple(sorted(filter(lambda i: i != '.gitignore', os.listdir(song_dir))))
 
 
-FpsLike = Callable[[int], int]
-
 SOURCE_CODE = 'https://github.com/hor00s/Awesome-sound'
 BASE_DIR: Path = Path(__file__).parent.parent.parent
 LOG_DIR = os.path.join(BASE_DIR, '.logs.txt')
@@ -70,7 +66,6 @@ FORWARD_ARR: str = os.path.join(BASE_DIR, 'player', 'images', 'forward-arr.png')
 LOGO: str = os.path.join(BASE_DIR, 'player', 'images', 'applogo.png')
 PLAYERUI: str = os.path.join(BASE_DIR, 'player', 'window', 'player.ui')
 CONFIG_FILE = os.path.join(BASE_DIR, '.config.json')
-FPS: FpsLike = lambda frame_rate: int(1000 / frame_rate)
 LYRICS_DIR: str = lyrics_dir(BASE_DIR)
 THEMECLR: str = 'rgb(0,206,209)'
 TITLE: str = 'Awesome sound'
