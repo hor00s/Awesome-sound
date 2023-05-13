@@ -81,7 +81,7 @@ def get_lyrics_file(lyrics_dir: str, player: MusicPlayer, extension: str) -> str
     construct a fake one and return its path
     :rtype: str
     """
-    sound_to_srt = player.disk.title() + extension
+    sound_to_srt = player.disk.song_name + extension
     lyrics_file = os.path.join(lyrics_dir, sound_to_srt)
     if not os.path.exists(lyrics_file):
         lyrics_file = os.path.join(lyrics_dir, 'fake.srt')

@@ -86,7 +86,7 @@ class TestDisk(unittest.TestCase):
     def test_title(self) -> None:
         disk = Disk(SONGS)
         song = 'practical'
-        title = disk.title()
+        title = disk.song_name
         self.assertEqual(song, title)
 
     def test_getitem(self) -> None:

@@ -12,7 +12,7 @@ class Creator:
     EXTENSION = EXTENSION
 
     def __init__(self, song: Disk, lyrics_dir: str) -> None:
-        self.song = song.title()
+        self.song = song.song_name
         self.lyrics_dir = lyrics_dir
 
     def manual_save(self, path: str) -> str:

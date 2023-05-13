@@ -78,13 +78,29 @@ class Disk:
         return os.path.join(BASE_DIR, 'player', 'songs', self.song_mp3)
 
     @property
-    def song_list(self) -> Tuple[str, ...]:
+    def full_song_list(self) -> Tuple[str, ...]:
         """
         :return: All the songs that contained in the disk as full paths
         Example: `('Gustavo Santaolalla - Babel (Trap Remix).mp3', ...)`
         :rtype: Tuple[str, ...]
         """
         return self._songs
+
+    @property
+    def song_name(self) -> str:
+        """Gives the title of the song without the extension
+        ```
+            >> self.song_mp3
+            'Sjaak - Trompetisto (Official Music Video).mp3'
+            >> self.title()
+            'Sjaak - Trompetisto (Official Music Video)'
+        ```
+
+        :return: The title
+        :rtype: str
+        """
+        reverse = self.song_mp3[::-1]
+        return reverse[reverse.index('.') + 1:][::-1]
 
     def _move_song_index(self, direction: str) -> int:
         """When the `next` or `previous` song is out
@@ -137,18 +153,3 @@ class Disk:
             raise IndexError("Disk index cannot be negative")
         self._playing_index = index
         return self._songs[self._playing_index]
-
-    def title(self) -> str:
-        """Gives the title of the song without the extension
-        ```
-            >> self.song_mp3
-            'Sjaak - Trompetisto (Official Music Video).mp3'
-            >> self.title()
-            'Sjaak - Trompetisto (Official Music Video)'
-        ```
-
-        :return: The title
-        :rtype: str
-        """
-        reverse = self.song_mp3[::-1]
-        return reverse[reverse.index('.') + 1:][::-1]

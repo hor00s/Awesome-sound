@@ -63,7 +63,7 @@ class MusicPlayer:
         self.disk = new_disk
 
         if not deletetion:
-            self.disk.user_pick(self.disk.song_list.index(current_playing))
+            self.disk.user_pick(self.disk.full_song_list.index(current_playing))
         elif deletetion:
             self.disk.next()
 

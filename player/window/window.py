@@ -112,7 +112,7 @@ class MainWindow(QMainWindow):
 
         # Set UI
         self.play_btn.setIcon(QtGui.QIcon(self.play_btn_switcher()))
-        self.current_playing_lbl.setText(self.player.disk.title())
+        self.current_playing_lbl.setText(self.player.disk.song_name)
         self.music_container.setCurrentRow(self.player.disk.song_index)
         self.volume_lbl.setText(f"Vol: {self.player.volume}")
         self.volume_bar.setValue(self.player.volume)
@@ -354,13 +354,13 @@ class MainWindow(QMainWindow):
             self._show_popup("Settings have been restored")
 
     def export_song(self) -> None:
-        song = self.player.disk.title()
+        song = self.player.disk.song_name
         logger.debug(f'Song {song} moved from {SONGS_DIR} -> {config["download_dir"]}')
         export_song(SONGS_DIR, self.player.disk.song_mp3, config['download_dir'])
         self._show_popup(f"Song {song} has been exported")
 
     def rename_song(self) -> None:
-        song_name = self.player.disk.title()
+        song_name = self.player.disk.song_name
         new_name, q = QInputDialog.getText(self, 'Rename', 'Choose a new name', text=song_name)
 
         lyrics_file = f"{song_name}.srt"
@@ -373,8 +373,7 @@ class MainWindow(QMainWindow):
                 if (key := get_delay_key(self.player.disk)) in config:
                     value = config[key]
                     config.remove_key(key)
-                    new_key = f"songs/{new_name}.mp3.delay"
-                    config.add(new_key, value)
+                    config.add(key, value)
 
             self.update_song_list(get_song_list(SONGS_DIR), deletion=True)
             self._show_popup(f"Song {song_name} has been renamed")
@@ -408,13 +407,13 @@ class MainWindow(QMainWindow):
                 stop = (self.timestamp_stop.seconds / 60) * 1000  # To milliseconds
                 audio = AudioSegment.from_file(self.player.disk.song_path, format='mp3')
                 extract = audio[start:stop]  # type: ignore
-                trimmed_name = f'{self.player.disk.title()}-trimmed.mp3'
+                trimmed_name = f'{self.player.disk.song_name}-trimmed.mp3'
                 export_dir = os.path.join(config['download_dir'], trimmed_name)
                 extract.export(export_dir)
                 import_songs([export_dir], SONGS_DIR)
                 self.update_song_list(get_song_list(SONGS_DIR))
                 # FIXME: This crashes if a song can't be trimmed. Show popup (self._show_popup)
-                song = self.player.disk.title()
+                song = self.player.disk.song_name
                 msg = f"Song {song} has been trimmed from `{start / 1000:.3f} - {stop / 1000:.3f}`"
                 logger.info('Trim mode `Off`')
                 logger.success(msg)
@@ -423,27 +422,26 @@ class MainWindow(QMainWindow):
 
     def delete_lyrics(self) -> None:
         key = get_delay_key(self.player.disk)
-        path = os.path.join(LYRICS_DIR, f"{self.player.disk.title()}.srt")
+        path = os.path.join(LYRICS_DIR, f"{self.player.disk.song_name}.srt")
         title = "Delete lyrics"
-        msg = f"Are you sure you want to delete lyrics for {self.player.disk.title()}?"
+        msg = f"Are you sure you want to delete lyrics for {self.player.disk.song_name}?"
         q = self.askyesno(title, msg)
 
         if q:
             if os.path.exists(path):
                 os.remove(path)
-                log = f"Lyrics for {self.player.disk.title()} was removed"
+                log = f"Lyrics for {self.player.disk.song_name} was removed"
                 logger.success(log)
                 self._show_popup(log)
                 if key in config:
-                    logger.success(f"Delay for {self.player.disk.title()} has been unset")
+                    logger.success(f"Delay for {self.player.disk.song_name} has been unset")
                     config.remove_key(key)
             else:
-                log = f"No lyrics found for song {self.player.disk.title()}"
+                log = f"No lyrics found for song {self.player.disk.song_name}"
                 logger.info(log)
                 self._show_popup(log)
         else:
             logger.info("Delete lyrics aborted")
-        self.update_song()
 
     def set_title(self) -> None:
         if self.player.is_muted:
@@ -459,7 +457,7 @@ class MainWindow(QMainWindow):
         try:
             path = self._file_explorer_one_file(SUPPORTED_LYRICS_FORMATS)
             manual_save_lyrics(path, self.player, LYRICS_DIR)
-            log = f"Lyrics for {self.player.disk.title()} has been set"
+            log = f"Lyrics for {self.player.disk.song_name} has been set"
             logger.success(log)
             self._show_popup(log)
         except FileNotFoundError:
@@ -504,7 +502,7 @@ class MainWindow(QMainWindow):
     def search_song(self) -> None:
         text = self.search_ln.text()
         if text:
-            songs = self.player.disk.song_list
+            songs = self.player.disk.full_song_list
             current_index = self.player.disk.song_index
             found_index = search_song(songs, text, current_index)
 
@@ -551,7 +549,7 @@ class MainWindow(QMainWindow):
         self.update_song_list(get_song_list(SONGS_DIR))
 
     def delete_song(self) -> None:
-        prompt = f"Are you sure you want to delete {self.player.disk.title()}?"
+        prompt = f"Are you sure you want to delete {self.player.disk.song_name}?"
         title = "Delete song"
         reply = self.askyesno(title, prompt)
         if reply:
@@ -577,7 +575,7 @@ class MainWindow(QMainWindow):
             self.lyrics_lbl.setText("")
 
     def update_song(self) -> None:
-        self.current_playing_lbl.setText(self.player.disk.title())
+        self.current_playing_lbl.setText(self.player.disk.song_name)
         self.music_container.setCurrentRow(self.player.disk.song_index)
 
         self.sound = pyglet.media.Player()
