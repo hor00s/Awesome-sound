@@ -57,3 +57,17 @@ popup_lbl = """
         background-color: #444;
     }
 """
+
+
+action_lbl_style = """
+QLabel {
+    color: #fff;
+    background-color: #333;
+    border-radius: 8px;
+    padding: 5px;
+    font-size: 12px;
+    text-align: center;
+    width: auto;
+    height: auto;
+}
+"""

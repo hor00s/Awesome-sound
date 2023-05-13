@@ -6,12 +6,13 @@ from pydub import AudioSegment
 from comps import MusicPlayer
 from tinytag import TinyTag
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5 import uic, QtGui
 from .qstyles import (
     status_bar_btn_style,
     lineedit_style,
     popup_lbl,
+    action_lbl_style,
 )
 from typing import (
     Iterable,
@@ -312,6 +313,7 @@ class MainWindow(QMainWindow):
         self.time2_inp.setText(str(self.timestamp_stop))
         self.arrow_lbl.setText('~>')
         self.action_lbl.setText('')
+        self.action_lbl.hide()
         self.trim_go_start_btn.setText("Start")
         self.trim_go_end_btn.setText("Stop")
         self.cancel_btn.setText('X')
@@ -324,10 +326,13 @@ class MainWindow(QMainWindow):
         self.status_bar.addWidget(self.cancel_btn)
         self.status_bar.addWidget(self.action_lbl)
 
-        self.action_lbl.setStyleSheet(f"color: {THEMECLR}; font-weight: bold;")
+        self.action_lbl.setStyleSheet(action_lbl_style)
         self.trim_go_start_btn.setStyleSheet(status_bar_btn_style)
         self.trim_go_end_btn.setStyleSheet(status_bar_btn_style)
         self.cancel_btn.setStyleSheet(status_bar_btn_style)
+        self.trim_go_start_btn.setCursor(Qt.PointingHandCursor)
+        self.trim_go_end_btn.setCursor(Qt.PointingHandCursor)
+        self.cancel_btn.setCursor(Qt.PointingHandCursor)
 
         self.time1_inp.setStyleSheet(lineedit_style)
         self.time2_inp.setStyleSheet(lineedit_style)
@@ -420,12 +425,14 @@ class MainWindow(QMainWindow):
             self.timestamp_start = datetime.timedelta(seconds=slider_position)
             self.time1_inp.setText(str(self.timestamp_start))
             self.trim_mode = True
+            self.action_lbl.show()
             self.action_lbl.setText('Trim mode')
         elif self.trim_mode:
             self.timestamp_stop = datetime.timedelta(seconds=slider_position)
             self.time2_inp.setText(str(self.timestamp_stop))
             self.trim_mode = False
             self.action_lbl.setText('')
+            self.action_lbl.hide()
             if self.valid_timestamps(self.timestamp_start, self.timestamp_stop):
                 start = (self.timestamp_start.seconds / 60) * 1000  # To milliseconds
                 stop = (self.timestamp_stop.seconds / 60) * 1000  # To milliseconds
@@ -621,6 +628,7 @@ class MainWindow(QMainWindow):
         self.time1_inp.setText('0:00:00')
         self.time2_inp.setText('0:00:00')
         self.action_lbl.setText('')
+        self.action_lbl.hide()
 
     def next_song(self) -> None:
         self.edit_modes_off()
