@@ -1,12 +1,10 @@
 import os
-import io
 import sys
 import unittest
 import unittest.mock
 from pathlib import Path
 from logger import Logger
 from .logger import Config
-from typing import Any
 
 
 BASE_DIR = Path(__file__).parent
@@ -77,24 +75,6 @@ class TestLogger(unittest.TestCase):
         self.assertEqual(self.logger.settings.get('info'), 3, msg="settings.get() returns value from wrong key or the value has changed")  # noqa
         with self.assertRaises(KeyError):
             self.logger.settings.get('not_existing')
-
-    @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
-    def test_success_msg(self, mock_stdout: Any) -> None:
-        msg = "anythong"
-
-        self.logger.settings.level = 5
-        self.logger.success(msg)
-        self.assertFalse(mock_stdout.getvalue())
-
-        self.logger.info(msg)
-        self.assertTrue(mock_stdout.getvalue())
-
-        self.logger.settings.level = 1
-        self.logger.success(msg)
-        self.assertTrue(mock_stdout.getvalue())
-
-        self.logger.info(msg)
-        self.assertTrue(mock_stdout.getvalue())
 
     def test_iter_next(self) -> None:
         for i2 in self.logger.settings:

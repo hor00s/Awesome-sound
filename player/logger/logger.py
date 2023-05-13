@@ -291,15 +291,15 @@ class Logger(metaclass=MetaLogger):
         if self._runner(func_name):
             print(f"{color}[{header.upper()}]: {msg}{get_color('reset')}", *args, end='', **kwargs)
             print(get_color('reset'))
-        self._log(header, msg)
+            self._log(header, msg)
 
     def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
         func_name = sys._getframe().f_code.co_name
         if self._runner(func_name):
             print(f"{Color.YELLOW.value}[{func_name.upper()}]: {msg}",
                   *args, end='', **kwargs)
-        print(get_color('reset'))
-        self._log(func_name, msg)
+            print(get_color('reset'))
+            self._log(func_name, msg)
 
     def success(self, msg: str, *args: Any, **kwargs: Any) -> None:
         func_name = sys._getframe().f_code.co_name
@@ -307,7 +307,7 @@ class Logger(metaclass=MetaLogger):
             print(f"{Color.GREEN.value}[{func_name.upper()}]: {msg}",
                   *args, end='', **kwargs)
             print(get_color('reset'))
-        self._log(func_name, msg)
+            self._log(func_name, msg)
 
     def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
         func_name = sys._getframe().f_code.co_name
@@ -315,7 +315,7 @@ class Logger(metaclass=MetaLogger):
             print(f"{Color.RED.value}[{func_name.upper()}]: {msg}",
                   *args, end='', **kwargs)
             print(get_color('reset'))
-        self._log(func_name, msg)
+            self._log(func_name, msg)
 
     def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
         func_name = sys._getframe().f_code.co_name
@@ -323,7 +323,7 @@ class Logger(metaclass=MetaLogger):
             print(f"{Color.RED_BOLD.value}[{func_name.upper()}]: {msg}",
                   *args, end='', **kwargs)
             print(get_color('reset'))
-        self._log(func_name, msg)
+            self._log(func_name, msg)
 
     def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
         func_name = sys._getframe().f_code.co_name
@@ -331,4 +331,4 @@ class Logger(metaclass=MetaLogger):
             print(f"{Color.BLUE.value}[{func_name.upper()}]: {msg}",
                   *args, end='', **kwargs)
             print(get_color('reset'))
-        self._log(func_name, msg)
+            self._log(func_name, msg)

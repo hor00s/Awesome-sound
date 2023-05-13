@@ -2,9 +2,9 @@ import os
 import pyglet  # type: ignore
 import datetime
 import webbrowser
-from pydub import AudioSegment  # type: ignore
+from pydub import AudioSegment
 from comps import MusicPlayer
-from tinytag import TinyTag  # type: ignore
+from tinytag import TinyTag
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import QTimer
 from PyQt5 import uic, QtGui

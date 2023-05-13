@@ -1,4 +1,5 @@
 import os
+import sys
 from logger import Logger
 from jsonwrapper import Handler
 from pathlib import Path
@@ -127,3 +128,9 @@ logger = Logger(1, LOG_DIR)
 config = Handler(CONFIG_FILE, CONFIG)
 if not os.path.exists(CONFIG_FILE):
     config.init()
+
+
+if 'unittest' in sys.modules.keys():
+    # If program runs with unittest, set logger level to `level 5`
+    # so it doesn't log anything in stdout and in file
+    logger.settings.level = 5

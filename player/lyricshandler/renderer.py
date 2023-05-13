@@ -1,5 +1,5 @@
 import os
-import srt  # type: ignore
+import srt
 import datetime
 from typing import Union, Optional
 from .constants import EXTENSION
