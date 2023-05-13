@@ -295,7 +295,7 @@ def search_song(songs: Tuple[str, ...], query: str, default_index: int) -> int:
     :rtype: int
     """
     if default_index >= len(songs):
-        raise IndexError("`default_index` is out of range of `songs`")
+        raise IndexError(f"default_index `{default_index}` is greater than songs `{len(songs)}`")
     for index, song in enumerate(songs):
         if query.lower() in song.lower():
             return index

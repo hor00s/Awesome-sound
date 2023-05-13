@@ -99,8 +99,7 @@ class Disk:
         :return: The title
         :rtype: str
         """
-        reverse = self.song_mp3[::-1]
-        return reverse[reverse.index('.') + 1:][::-1]
+        return self.song_mp3[:self.song_mp3.rfind('.')]
 
     def _move_song_index(self, direction: str) -> int:
         """When the `next` or `previous` song is out
@@ -115,12 +114,10 @@ class Disk:
         if direction == 'up':
             if self._playing_index + 1 > len(self):
                 self._playing_index = 0
-                return self._playing_index
 
         elif direction == 'down':
             if self._playing_index < 0:
                 self._playing_index = len(self) - 1
-                return self._playing_index
 
         return self._playing_index
 
