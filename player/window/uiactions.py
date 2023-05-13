@@ -300,3 +300,10 @@ def search_song(songs: Tuple[str, ...], query: str, default_index: int) -> int:
         if query.lower() in song.lower():
             return index
     return default_index
+
+
+def time_to_total_seconds(time: str) -> float:
+    time_obj = datetime.datetime.strptime(time, '%H:%M:%S')
+    total_seconds = datetime.timedelta(hours=time_obj.hour, minutes=time_obj.minute,
+                                       seconds=time_obj.second).seconds
+    return total_seconds

@@ -8,6 +8,11 @@ from tinytag import TinyTag  # type: ignore
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtCore import QTimer
 from PyQt5 import uic, QtGui
+from .qstyles import (
+    status_bar_btn_style,
+    lineedit_style,
+    popup_lbl,
+)
 from typing import (
     Iterable,
     Tuple,
@@ -30,6 +35,7 @@ from .uiactions import (
     export_song,
     rename,
     search_song,
+    time_to_total_seconds,
 )
 from lyricshandler import (
     Renderer,
@@ -91,8 +97,9 @@ class MainWindow(QMainWindow):
 
         self.trim_mode = False
         self.lyrics_mode = False
-        self.timestamp_start = datetime.timedelta(hours=0, minutes=0, seconds=0, milliseconds=0)
-        self.timestamp_stop = datetime.timedelta(hours=0, minutes=0, seconds=0, milliseconds=0)
+        dt = datetime.timedelta(hours=0, minutes=0, seconds=0, milliseconds=0)
+        self.timestamp_start = dt
+        self.timestamp_stop = dt
 
         self.set_title()
 
@@ -225,6 +232,7 @@ class MainWindow(QMainWindow):
     def _load_line_edits(self) -> None:
         self.search_ln = self.findChild(QLineEdit, 'search_query_ln')
         self.search_ln.setPlaceholderText("Search song...")
+        self.search_ln.setStyleSheet(lineedit_style)
 
     def _load_sliders(self) -> None:
         self.song_slider = self.findChild(QSlider, 'music_prog_bar')
@@ -249,19 +257,7 @@ class MainWindow(QMainWindow):
         self.current_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.total_time_lbl.setStyleSheet((f'color: {THEMECLR};'))
         self.volume_lbl.setStyleSheet((f'color: {THEMECLR};'))
-        self.popup_lbl.setStyleSheet('''
-            QLabel {
-                color: #fff;
-                background-color: #333;
-                border-radius: 10px;
-                padding: 5px;
-                font-size: 15px;
-                border: 2px solid #555;
-            }
-            QLabel:hover {
-                background-color: #444;
-            }
-        ''')
+        self.popup_lbl.setStyleSheet(popup_lbl)
 
         self.current_playing_lbl.setWordWrap(True)
         self.popup_lbl.hide()
@@ -283,7 +279,7 @@ class MainWindow(QMainWindow):
         """
         self.is_pressed = True
 
-    def move_song(self, seconds: int) -> None:
+    def move_song(self, seconds: float) -> None:
         """Move the music slider to a song's timestamp and upon release,
         set the song to that timestamp and reset the `self.is_pressed` to `False`
 
@@ -304,20 +300,54 @@ class MainWindow(QMainWindow):
 
     def _load_status_bar(self) -> None:
         self.status_bar = self.findChild(QStatusBar, 'statusbar')
-        self.time1_lbl = QLabel(self)
-        self.time2_lbl = QLabel(self)
+        self.time1_inp = QLineEdit(self)
+        self.time2_inp = QLineEdit(self)
         self.arrow_lbl = QLabel(self)
         self.action_lbl = QLabel(self)
+        self.trim_go_start_btn = QPushButton(self)
+        self.trim_go_end_btn = QPushButton(self)
+        self.cancel_btn = QPushButton(self)
 
-        self.time1_lbl.setText(str(self.timestamp_start))
-        self.time2_lbl.setText(str(self.timestamp_stop))
+        self.time1_inp.setText(str(self.timestamp_start))
+        self.time2_inp.setText(str(self.timestamp_stop))
         self.arrow_lbl.setText('~>')
         self.action_lbl.setText('')
+        self.trim_go_start_btn.setText("Start")
+        self.trim_go_end_btn.setText("Stop")
+        self.cancel_btn.setText('X')
 
-        self.status_bar.addWidget(self.time1_lbl)
+        self.status_bar.addWidget(self.time1_inp)
         self.status_bar.addWidget(self.arrow_lbl)
-        self.status_bar.addWidget(self.time2_lbl)
+        self.status_bar.addWidget(self.time2_inp)
+        self.status_bar.addWidget(self.trim_go_start_btn)
+        self.status_bar.addWidget(self.trim_go_end_btn)
+        self.status_bar.addWidget(self.cancel_btn)
         self.status_bar.addWidget(self.action_lbl)
+
+        self.action_lbl.setStyleSheet(f"color: {THEMECLR}; font-weight: bold;")
+        self.trim_go_start_btn.setStyleSheet(status_bar_btn_style)
+        self.trim_go_end_btn.setStyleSheet(status_bar_btn_style)
+        self.cancel_btn.setStyleSheet(status_bar_btn_style)
+
+        self.time1_inp.setStyleSheet(lineedit_style)
+        self.time2_inp.setStyleSheet(lineedit_style)
+
+        self.trim_go_start_btn.clicked.connect(  # type: ignore
+            lambda: self.move_song(self._time_to_seconds(self.time1_inp.text()))
+        )
+        self.trim_go_end_btn.clicked.connect(  # type: ignore
+            lambda: self.move_song(self._time_to_seconds(self.time2_inp.text(), 0.5))
+        )
+        self.cancel_btn.clicked.connect(lambda: self.edit_modes_off())  # type: ignore
+
+    def _time_to_seconds(self, time: str, subtract: float = 0) -> float:
+        try:
+            seconds = time_to_total_seconds(time) / 60 - subtract
+        except ValueError:
+            seconds = self.sound.time
+            self._show_popup("Invalid timestamp")
+        finally:
+            return seconds
 
     def _fill_list_widget(self) -> None:
         """Fill the list widget where all the songs are listed with
@@ -327,11 +357,6 @@ class MainWindow(QMainWindow):
         for song in self.player.disk:
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
-
-    def refresh_status_bar(self, start: str, end: str, action: str) -> None:
-        self.time1_lbl.setText(start)
-        self.time2_lbl.setText(end)
-        self.action_lbl.setText(action)
 
     def small_step(self, step: int) -> None:
         current_seconds = self.song_slider.value() / 60
@@ -393,13 +418,12 @@ class MainWindow(QMainWindow):
 
         if not self.trim_mode:
             self.timestamp_start = datetime.timedelta(seconds=slider_position)
-            self.time1_lbl.setText(str(self.timestamp_start))
+            self.time1_inp.setText(str(self.timestamp_start))
             self.trim_mode = True
             self.action_lbl.setText('Trim mode')
-            logger.info('Trim mode `On`')
         elif self.trim_mode:
             self.timestamp_stop = datetime.timedelta(seconds=slider_position)
-            self.time2_lbl.setText(str(self.timestamp_stop))
+            self.time2_inp.setText(str(self.timestamp_stop))
             self.trim_mode = False
             self.action_lbl.setText('')
             if self.valid_timestamps(self.timestamp_start, self.timestamp_stop):
@@ -415,7 +439,6 @@ class MainWindow(QMainWindow):
                 # FIXME: This crashes if a song can't be trimmed. Show popup (self._show_popup)
                 song = self.player.disk.song_name
                 msg = f"Song {song} has been trimmed from `{start / 1000:.3f} - {stop / 1000:.3f}`"
-                logger.info('Trim mode `Off`')
                 logger.success(msg)
         else:
             logger.warning("Trim has been abborted")
@@ -595,8 +618,8 @@ class MainWindow(QMainWindow):
     def edit_modes_off(self) -> None:
         self.trim_mode = False
         self.lyrics_mode = False
-        self.time1_lbl.setText('0.00.00')
-        self.time2_lbl.setText('0.00.00')
+        self.time1_inp.setText('0:00:00')
+        self.time2_inp.setText('0:00:00')
         self.action_lbl.setText('')
 
     def next_song(self) -> None:
