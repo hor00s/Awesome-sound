@@ -385,11 +385,22 @@
     <addaction name="actionReset"/>
     <addaction name="actionMax_frame_rate"/>
    </widget>
+   <widget class="QMenu" name="menuPlaylist">
+    <property name="title">
+     <string>Playlist</string>
+    </property>
+    <addaction name="actionOriginal"/>
+    <addaction name="actionShuffle"/>
+    <addaction name="actionAlphaberical"/>
+    <addaction name="actionLength_increasing"/>
+    <addaction name="actionLength_decreasing"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
    <addaction name="menuLyrics"/>
    <addaction name="menuLogs"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuPlaylist"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionShortcuts">
@@ -465,6 +476,51 @@
   <action name="actionMax_frame_rate">
    <property name="text">
     <string>Max frame rate</string>
+   </property>
+  </action>
+  <action name="actionShuffle_playlist">
+   <property name="text">
+    <string>Shuffle playlist</string>
+   </property>
+  </action>
+  <action name="actionShuffle">
+   <property name="text">
+    <string>Shuffle</string>
+   </property>
+  </action>
+  <action name="actionAlphaberical">
+   <property name="text">
+    <string>Alphaberical</string>
+   </property>
+  </action>
+  <action name="actionLength">
+   <property name="text">
+    <string>Length</string>
+   </property>
+  </action>
+  <action name="actionTrimmed_first">
+   <property name="text">
+    <string>Trimmed  first</string>
+   </property>
+  </action>
+  <action name="actionTrimmed_last">
+   <property name="text">
+    <string>Trimmed last</string>
+   </property>
+  </action>
+  <action name="actionLength_increasing">
+   <property name="text">
+    <string>Length increasing</string>
+   </property>
+  </action>
+  <action name="actionLength_decreasing">
+   <property name="text">
+    <string>Length decreasing</string>
+   </property>
+  </action>
+  <action name="actionOriginal">
+   <property name="text">
+    <string>Original</string>
    </property>
   </action>
  </widget>

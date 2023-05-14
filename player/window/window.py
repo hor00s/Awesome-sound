@@ -1,5 +1,6 @@
 import os
 import pyglet  # type: ignore
+import random
 import datetime
 import webbrowser
 from pydub import AudioSegment
@@ -16,8 +17,11 @@ from .qstyles import (
 )
 from typing import (
     Iterable,
+    Callable,
+    Literal,
     Tuple,
     Union,
+    Dict,
     List,
     Any,
 )
@@ -189,6 +193,11 @@ class MainWindow(QMainWindow):
         self.actionRename_song.triggered.connect(lambda: self.rename_song())
         self.actionChange_download_dir.triggered.connect(lambda: self.change_download_dir())
         self.actionMax_frame_rate.triggered.connect(lambda: self.set_frame_rate())
+        self.actionShuffle.triggered.connect(lambda: self.order_by('shuffle'))
+        self.actionAlphaberical.triggered.connect(lambda: self.order_by('alphabetical'))
+        self.actionLength_increasing.triggered.connect(lambda: self.order_by('length', False))
+        self.actionLength_decreasing.triggered.connect(lambda: self.order_by('length', True))
+        self.actionOriginal.triggered.connect(lambda: self.order_by('original'))
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
@@ -577,6 +586,36 @@ class MainWindow(QMainWindow):
         paths = self._file_explorer_many_files(SUPPORTED_SONG_FORMATS)
         import_songs(paths, SONGS_DIR)
         self.update_song_list(get_song_list(SONGS_DIR))
+
+    def _order_shuffle_playlist(self) -> None:
+        songs = list(get_song_list(SONGS_DIR))
+        random.shuffle(songs)
+        self.update_song_list(tuple(songs))
+
+    def _order_alphabetical(self) -> None:
+        songs = tuple(sorted(get_song_list(SONGS_DIR), key=lambda i: i[0]))
+        self.update_song_list(songs)
+
+    def _order_length(self, reverse: bool) -> None:
+        songs = get_song_list(SONGS_DIR)
+
+        song_objs: List[Tuple[TinyTag, str]] = []
+        for song in songs:
+            path = os.path.join(SONGS_DIR, song)
+            song_objs.append((TinyTag.get(path), song))
+
+        sorted_songs = sorted(song_objs, key=lambda i: i[0].duration, reverse=reverse)
+        self.update_song_list(tuple(map(lambda i: i[1], sorted_songs)))
+
+    def order_by(self, option: Literal['shuffle', 'alphabetical', 'length', 'original'],
+                 *args: Any, **kwargs: Any) -> None:
+        options: Dict[str, Callable[..., None]] = {
+            'shuffle': self._order_shuffle_playlist,
+            'alphabetical': self._order_alphabetical,
+            'length': self._order_length,
+            'original': lambda: self.update_song_list(get_song_list(SONGS_DIR))
+        }
+        options[option](*args, **kwargs)
 
     def delete_song(self) -> None:
         prompt = f"Are you sure you want to delete {self.player.disk.song_name}?"
