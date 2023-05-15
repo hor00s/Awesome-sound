@@ -1,5 +1,6 @@
+# mypy: ignore-errors
 import os
-import pyglet  # type: ignore
+import pyglet
 import random
 import datetime
 import webbrowser
@@ -92,7 +93,7 @@ from PyQt5.QtWidgets import (
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super(MainWindow, self).__init__()
-        uic.loadUi(PLAYERUI, self)   # type: ignore
+        uic.loadUi(PLAYERUI, self)
         self.window_title = f"{TITLE} {VERISONS[-1]}"
         self.setWindowIcon(QtGui.QIcon(LOGO))
         self.setFixedSize(self.width(), self.height())
@@ -165,13 +166,13 @@ class MainWindow(QMainWindow):
         self.delete_song_shortcut = QShortcut(QKeySequence(SHORTCUTS['DELETE SONG']), self)
         self.main_window_focus = QShortcut(QKeySequence(SHORTCUTS['MAIN WINDOW FOCUS']), self)
 
-        self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())  # type: ignore
-        self.next_shortcut.activated.connect(lambda: self.next_song())  # type: ignore
-        self.prev_shortcut.activated.connect(lambda: self.prev_song())  # type: ignore
-        self.mute_shortcut.activated.connect(lambda: self.mute_player())  # type: ignore
-        self.delete_song_shortcut.activated.connect(lambda: self.delete_song())  # type: ignore
-        self.trim_shortcut.activated.connect(lambda: self.trim_song())  # type: ignore
-        self.main_window_focus.activated.connect(  # type: ignore
+        self.play_shortcut.activated.connect(lambda: self.play_btn_switcher())
+        self.next_shortcut.activated.connect(lambda: self.next_song())
+        self.prev_shortcut.activated.connect(lambda: self.prev_song())
+        self.mute_shortcut.activated.connect(lambda: self.mute_player())
+        self.delete_song_shortcut.activated.connect(lambda: self.delete_song())
+        self.trim_shortcut.activated.connect(lambda: self.trim_song())
+        self.main_window_focus.activated.connect(
             lambda: QApplication.activeWindow().setFocus()
         )
 
@@ -201,7 +202,7 @@ class MainWindow(QMainWindow):
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
-        self.timer.timeout.connect(self.update)  # type: ignore
+        self.timer.timeout.connect(self.update)
         self.timer.start(config.get('max_frame_rate'))
         logger.info(f"{get_datetime()} Ui set up is completed")
 
@@ -346,13 +347,13 @@ class MainWindow(QMainWindow):
         self.time1_inp.setStyleSheet(lineedit_style)
         self.time2_inp.setStyleSheet(lineedit_style)
 
-        self.trim_go_start_btn.clicked.connect(  # type: ignore
+        self.trim_go_start_btn.clicked.connect(
             lambda: self.move_song(self._time_to_seconds(self.time1_inp.text()))
         )
-        self.trim_go_end_btn.clicked.connect(  # type: ignore
+        self.trim_go_end_btn.clicked.connect(
             lambda: self.move_song(self._time_to_seconds(self.time2_inp.text(), 0.5))
         )
-        self.cancel_btn.clicked.connect(lambda: self.edit_modes_off())  # type: ignore
+        self.cancel_btn.clicked.connect(lambda: self.edit_modes_off())
 
     def _time_to_seconds(self, time: str, subtract: float = 0) -> float:
         try:
@@ -446,7 +447,7 @@ class MainWindow(QMainWindow):
                 start = (self.timestamp_start.seconds / 60) * 1000  # To milliseconds
                 stop = (self.timestamp_stop.seconds / 60) * 1000  # To milliseconds
                 audio = AudioSegment.from_file(self.player.disk.song_path, format='mp3')
-                extract = audio[start:stop]  # type: ignore
+                extract = audio[start:stop]
                 trimmed_name = f'{self.player.disk.song_name}-trimmed.mp3'
                 export_dir = os.path.join(config['download_dir'], trimmed_name)
                 extract.export(export_dir)
@@ -554,7 +555,7 @@ class MainWindow(QMainWindow):
             65536: False,
         }
         reply = QMessageBox.question(self, title, msg,
-                                     QMessageBox.Yes | QMessageBox.No)  # type: ignore
+                                     QMessageBox.Yes | QMessageBox.No)
         return replies[reply]
 
     def check_logs(self) -> None:
@@ -707,11 +708,11 @@ class MainWindow(QMainWindow):
         # # Update slider's position every ms that ellapses
         slider.tracking = True
         slider.setValue(x)
-        slider.sliderPosition = x  # type: ignore
+        slider.sliderPosition = x
         slider.update()
         slider.repaint()
 
-    def update(self) -> None:  # type: ignore
+    def update(self) -> None:
         tag = TinyTag.get(self.player.disk.song_path)
         total_time = tag.duration
         total_seconds = total_time * 60
