@@ -59,10 +59,21 @@ TEST_CONFIG = {
 test_config = Handler(test_config_file, TEST_CONFIG)
 
 
+SONGS: tuple[str, ...] = (
+    'Gustavo Santaolalla - Babel (Trap Remix).mp3',
+    'Motto-trimmed.mp3',
+    'The Neighbourhood - Sweater Weather (Ozgur Arslan Remix).mp3',
+    'tiesto go down deh.mp3',
+    'Tion Wayne - IFTK (Feat. La Roux).mp3',
+    'Tion Wayne - IFTK (Feat. La Roux)-Ringtone-trimmed.mp3',
+    'Want Ya.mp3',
+)
+
+
 class TestUiActions(unittest.TestCase):
     def setUp(self) -> None:
         test_config.init()
-        self.disk = Disk(get_song_list(SONGS_DIR))
+        self.disk = Disk(SONGS)
         self.player = MusicPlayer(self.disk, test_config.get('is_muted', False),
                                   test_config.get('volume', False))
         return super().setUp()
@@ -74,20 +85,20 @@ class TestUiActions(unittest.TestCase):
     def test_get_disk(self) -> None:
         # Test with default song
         index = 0
-        songs = get_song_list(SONGS_DIR)
+        songs = SONGS
         disk = get_disk(test_config, songs)
         self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
 
         # Test with set song
         index = 3
-        songs = get_song_list(SONGS_DIR)
+        songs = SONGS
         CONFIG['last_song'] = {'song': songs[index], 'timestamp': 1.1}
         os.remove(test_config._file)
         test_config._config = CONFIG
         test_config.init()
         disk = get_disk(test_config, songs)
-        songs = get_song_list(SONGS_DIR)
+        songs = SONGS
         self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
 
