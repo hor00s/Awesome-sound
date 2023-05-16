@@ -12,32 +12,31 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'  # Replace with the desired Python version
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Replace with the desired Python version
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Run flake8
-      run: |
-        cd player/
-        pip install mypy flake8
-        flake8 --max-line-length=100 --ignore=E701 --ignore=E704 .
+      - name: Run flake8
+        run: |
+          cd player/
+          pip install mypy flake8
+          flake8 --max-line-length=100 --ignore=E701 --ignore=E704 .
 
-    - name: Run mypy
-      run: |
-        cd player/
-        mypy . --strict
+      - name: Run mypy
+        run: |
+          cd player/
+          mypy . --strict
 
-    - name: Run unit tests
-      run: |
-        cd player/
-        python -m unittest discover
+      - name: Run unit tests
+        run: |
+          cd player/
+          python -m unittest discover
