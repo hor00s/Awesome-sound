@@ -1,4 +1,11 @@
+flake8==6.0.0
+mccabe==0.7.0
+mypy==1.3.0
+mypy-extensions==1.0.0
 packaging==21.3
+pycodestyle==2.10.0
+pydub==0.25.1
+pyflakes==3.0.1
 pyglet==1.5.26
 pyparsing==3.0.9
 PyQt5==5.15.7
@@ -7,3 +14,5 @@ PyQt5-sip==12.11.0
 QtPy==2.2.0
 srt==3.5.3
 tinytag==1.8.1
+tomli==2.0.1
+typing-extensions==4.5.0
