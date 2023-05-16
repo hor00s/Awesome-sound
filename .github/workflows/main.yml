@@ -33,9 +33,9 @@ jobs:
         flake8 --max-line-length=100 --ignore=E701 --ignore=E704 .
 
     - name: Run mypy
-    run: |
-      cd player/
-      mypy . --strict
+      run: |
+        cd player/
+        mypy . --strict
 
     - name: Run unit tests
       run: |
