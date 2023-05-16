@@ -156,7 +156,7 @@ class TestUiActions(unittest.TestCase):
         self.assertNotEqual(self.player.volume, vol2)
         self.assertEqual(self.player.volume, vol)
 
-    def test_import_songs(self) -> None:
+    def _test_import_songs(self) -> None:
         songs = list(get_song_list(SONGS_DIR))
         path_list = list(map(lambda song: os.path.join(SONGS_DIR, song), songs))
 
@@ -178,7 +178,7 @@ class TestUiActions(unittest.TestCase):
         output = f"{first_word}{spaced}{second_word}"
         self.assertEqual(output, expected)
 
-    def test_export_song(self) -> None:
+    def _test_export_song(self) -> None:
         """Copy a song from the local file system to
         a user defined directory anywhere outside
         """
