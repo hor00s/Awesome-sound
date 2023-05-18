@@ -279,9 +279,8 @@ class Logger(metaclass=MetaLogger):
         :rtype: str
         """
         cf = currentframe()
-        msg = f"File \"{file}\", line {cf.f_back.f_lineno}"  # type: ignore
-        self.debug(f"{msg} : {prompt}")
-        print(file)
+        msg = f'File "{file}", line {cf.f_back.f_lineno}'  # type: ignore
+        self.custom(f"{msg} : {prompt}", 'line info', color=get_color('cyan_bold'))
         return msg
 
     # ONLY LOGGING FUNCTIONS AFTER THIS
