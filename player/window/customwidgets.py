@@ -1,11 +1,19 @@
 from PyQt5 import QtGui
+from PyQt5.QtCore import Qt
 from typing import (
+    Optional,
     Any,
+)
+from .qstyles import (
+    lineedit_style,
+    status_bar_btn_style,
 )
 from PyQt5.QtWidgets import (
     QScrollArea,
+    QPushButton,
     QMessageBox,
     QVBoxLayout,
+    QLineEdit,
     QWidget,
     QLabel,
 )
@@ -29,3 +37,20 @@ class ScrollMessageBox(QMessageBox):
         self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())  # type: ignore
         self.setStyleSheet("QScrollArea{min-width:%spx; min-height: %spx}"
                            % (str(min_width), str(min_height)))
+
+
+class StatusBarButton(QPushButton):
+    def __init__(self, parent: Optional[QWidget] = None, text: str = "",
+                 stylesheet: str = status_bar_btn_style):
+        super().__init__(parent=parent)
+        self.setStyleSheet(stylesheet)
+        self.setText(text)
+        self.setCursor(Qt.PointingHandCursor)  # type: ignore
+
+
+class StatusBarTimeEdit(QLineEdit):
+    def __init__(self, parent: Optional[QWidget] = None, text: str = "",
+                 stylesheet: str = lineedit_style):
+        super().__init__(parent=parent)
+        self.setStyleSheet(stylesheet)
+        self.setText(text)

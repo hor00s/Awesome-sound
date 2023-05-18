@@ -8,10 +8,9 @@ from pydub import AudioSegment
 from comps import MusicPlayer
 from tinytag import TinyTag
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer
 from PyQt5 import uic, QtGui
 from .qstyles import (
-    status_bar_btn_style,
     lineedit_style,
     popup_lbl,
     action_lbl_style,
@@ -72,7 +71,9 @@ from actions import (
     config,
 )
 from .customwidgets import (
+    StatusBarTimeEdit,
     ScrollMessageBox,
+    StatusBarButton,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -311,22 +312,17 @@ class MainWindow(QMainWindow):
 
     def _load_status_bar(self) -> None:
         self.status_bar = self.findChild(QStatusBar, 'statusbar')
-        self.time1_inp = QLineEdit(self)
-        self.time2_inp = QLineEdit(self)
+        self.time1_inp = StatusBarTimeEdit(self, str(self.timestamp_start))
+        self.time2_inp = StatusBarTimeEdit(self, str(self.timestamp_start))
         self.arrow_lbl = QLabel(self)
         self.action_lbl = QLabel(self)
-        self.trim_go_start_btn = QPushButton(self)
-        self.trim_go_end_btn = QPushButton(self)
-        self.cancel_btn = QPushButton(self)
+        self.trim_go_start_btn = StatusBarButton(self, 'Start')
+        self.trim_go_end_btn = StatusBarButton(self, 'Stop')
+        self.cancel_btn = StatusBarButton(self, 'X')
 
-        self.time1_inp.setText(str(self.timestamp_start))
-        self.time2_inp.setText(str(self.timestamp_stop))
         self.arrow_lbl.setText('~>')
         self.action_lbl.setText('')
         self.action_lbl.hide()
-        self.trim_go_start_btn.setText("Start")
-        self.trim_go_end_btn.setText("Stop")
-        self.cancel_btn.setText('X')
 
         self.status_bar.addWidget(self.time1_inp)
         self.status_bar.addWidget(self.arrow_lbl)
@@ -337,15 +333,6 @@ class MainWindow(QMainWindow):
         self.status_bar.addWidget(self.action_lbl)
 
         self.action_lbl.setStyleSheet(action_lbl_style)
-        self.trim_go_start_btn.setStyleSheet(status_bar_btn_style)
-        self.trim_go_end_btn.setStyleSheet(status_bar_btn_style)
-        self.cancel_btn.setStyleSheet(status_bar_btn_style)
-        self.trim_go_start_btn.setCursor(Qt.PointingHandCursor)
-        self.trim_go_end_btn.setCursor(Qt.PointingHandCursor)
-        self.cancel_btn.setCursor(Qt.PointingHandCursor)
-
-        self.time1_inp.setStyleSheet(lineedit_style)
-        self.time2_inp.setStyleSheet(lineedit_style)
 
         self.trim_go_start_btn.clicked.connect(
             lambda: self.move_song(self._time_to_seconds(self.time1_inp.text()))
@@ -518,16 +505,18 @@ class MainWindow(QMainWindow):
             if min_frame_rate <= int_frames <= max_frame_rate:
                 config.edit('max_frame_rate', int_frames)
                 logger.success(f"{dt} Frame rate changed `{current_frames} -> {frames}`")
-                self.timer.stop()
-                self.timer
+                msg = "Frame rate changed. Restart the app for the changes to be applied"
+                self._show_popup(msg)
             else:
                 log = f"{dt} Invalid value `{frames}` for frame rate"
+                msg = f"Invalid value `{frames}` for frame rate"
                 logger.warning(log)
-                self._show_popup(log)
+                self._show_popup(msg)
         else:
             log = f"{dt} Invalid value `{frames}` for frame rate"
+            msg = f"Invalid value `{frames}` for frame rate"
             logger.warning(log)
-            self._show_popup(log)
+            self._show_popup(msg)
 
     def _file_explorer_one_file(self, file_types: Iterable[str]) -> str:
         types = make_file_types(file_types)
