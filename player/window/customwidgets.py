@@ -41,11 +41,13 @@ class ScrollMessageBox(QMessageBox):
 
 class StatusBarButton(QPushButton):
     def __init__(self, parent: Optional[QWidget] = None, text: str = "",
-                 stylesheet: str = status_bar_btn_style):
+                 stylesheet: str = status_bar_btn_style, tooltip_text: Optional[str] = None):
         super().__init__(parent=parent)
         self.setStyleSheet(stylesheet)
         self.setText(text)
         self.setCursor(Qt.PointingHandCursor)  # type: ignore
+        if tooltip_text is not None:
+            self.setToolTip(tooltip_text)
 
 
 class StatusBarTimeEdit(QLineEdit):

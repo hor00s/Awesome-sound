@@ -147,7 +147,7 @@ def manual_save_lyrics(path: str, player: MusicPlayer, lyrics_dir: str) -> str:
     :return: The path to the lyric's file in the app's lyrics dir
     :rtype: str
     """
-    creator = Creator(player.disk, lyrics_dir)
+    creator = Creator(player, lyrics_dir)
     lyrics_location = creator.manual_save(path)
     logger.debug(f"{get_datetime()} Lyrics file moved from {path} -> {lyrics_location}")
     return lyrics_location

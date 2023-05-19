@@ -23,6 +23,7 @@ __all__ = (
     'BACKGROUND',
     'BACKWARD_ARR',
     'FORWARD_ARR',
+    'LYRICS_ICON',
     'LOGO',
     'PLAYERUI',
     'LYRICS_DIR',
@@ -64,6 +65,7 @@ RECORD_BTN: str = os.path.join(BASE_DIR, 'player', 'images', 'record.png')
 BACKGROUND: str = os.path.join(BASE_DIR, 'player', 'images', 'background.png')
 BACKWARD_ARR: str = os.path.join(BASE_DIR, 'player', 'images', 'backward-arr.png')
 FORWARD_ARR: str = os.path.join(BASE_DIR, 'player', 'images', 'forward-arr.png')
+LYRICS_ICON: str = os.path.join(BASE_DIR, 'player', 'images', 'song-lyrics.png')
 LOGO: str = os.path.join(BASE_DIR, 'player', 'images', 'applogo.png')
 PLAYERUI: str = os.path.join(BASE_DIR, 'player', 'window', 'player.ui')
 CONFIG_FILE = os.path.join(BASE_DIR, '.config.json')
@@ -81,6 +83,7 @@ VERISONS: Tuple[str, ...] = (
     'v.1.1',
     'v.1.2',
     'v.1.3',
+    'v.1.4',
 )
 
 SHORTCUTS: Dict[str, str] = {

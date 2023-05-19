@@ -44,6 +44,7 @@ from .uiactions import (
 )
 from lyricshandler import (
     Renderer,
+    Creator,
 )
 from actions import (
     LOGO,
@@ -61,6 +62,7 @@ from actions import (
     RECORD_BTN,
     BACKGROUND,
     FORWARD_ARR,
+    LYRICS_ICON,
     SOURCE_CODE,
     BACKWARD_ARR,
     PREVIOUS_BTN,
@@ -150,6 +152,7 @@ class MainWindow(QMainWindow):
             lambda: self.move_song(self.song_slider.value() / 60)
         )
         self.rec_btn.clicked.connect(lambda: self.trim_song())
+        self.lyrics_btn.clicked.connect(lambda: self.make_lyrics())
         self.forward_btn.clicked.connect(lambda: self.small_step(1))  # seconds
         self.backward_btn.clicked.connect(lambda: self.small_step(- 1))  # seconds
         self.search_ln.textChanged.connect(lambda: self.search_song())
@@ -224,6 +227,7 @@ class MainWindow(QMainWindow):
         self.rec_btn = self.findChild(QPushButton, 'rec_btn')
         self.backward_btn = self.findChild(QPushButton, 'backward_btn')
         self.forward_btn = self.findChild(QPushButton, 'forward_btn')
+        self.lyrics_btn = self.findChild(QPushButton, 'lyrics_btn')
 
         self.prev_btn.setIcon(QtGui.QIcon(PREVIOUS_BTN))
         self.rec_btn.setIcon(QtGui.QIcon(RECORD_BTN))
@@ -232,12 +236,14 @@ class MainWindow(QMainWindow):
         self.mute_btn.setIcon(QtGui.QIcon(MUTE_BTN))
         self.backward_btn.setIcon(QtGui.QIcon(BACKWARD_ARR))
         self.forward_btn.setIcon(QtGui.QIcon(FORWARD_ARR))
+        self.lyrics_btn.setIcon(QtGui.QIcon(LYRICS_ICON))
 
         self.rec_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.prev_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.next_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.play_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.mute_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
+        self.lyrics_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.forward_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
         self.backward_btn.setStyleSheet(f'background-color: {THEMECLR}; border-radius: 10%;')
 
@@ -316,9 +322,10 @@ class MainWindow(QMainWindow):
         self.time2_inp = StatusBarTimeEdit(self, str(self.timestamp_start))
         self.arrow_lbl = QLabel(self)
         self.action_lbl = QLabel(self)
-        self.trim_go_start_btn = StatusBarButton(self, 'Start')
-        self.trim_go_end_btn = StatusBarButton(self, 'Stop')
-        self.cancel_btn = StatusBarButton(self, 'X')
+
+        self.go_start_timestamp = StatusBarButton(self, 'Start', tooltip_text="Jump to start point")
+        self.go_end_timestamp = StatusBarButton(self, 'Stop', tooltip_text="Jump to endpoint")
+        self.cancel_btn = StatusBarButton(self, 'X', tooltip_text="Cancel any activated mode")
 
         self.arrow_lbl.setText('~>')
         self.action_lbl.setText('')
@@ -327,17 +334,17 @@ class MainWindow(QMainWindow):
         self.status_bar.addWidget(self.time1_inp)
         self.status_bar.addWidget(self.arrow_lbl)
         self.status_bar.addWidget(self.time2_inp)
-        self.status_bar.addWidget(self.trim_go_start_btn)
-        self.status_bar.addWidget(self.trim_go_end_btn)
+        self.status_bar.addWidget(self.go_start_timestamp)
+        self.status_bar.addWidget(self.go_end_timestamp)
         self.status_bar.addWidget(self.cancel_btn)
         self.status_bar.addWidget(self.action_lbl)
 
         self.action_lbl.setStyleSheet(action_lbl_style)
 
-        self.trim_go_start_btn.clicked.connect(
+        self.go_start_timestamp.clicked.connect(
             lambda: self.move_song(self._time_to_seconds(self.time1_inp.text()))
         )
-        self.trim_go_end_btn.clicked.connect(
+        self.go_end_timestamp.clicked.connect(
             lambda: self.move_song(self._time_to_seconds(self.time2_inp.text(), 0.5))
         )
         self.cancel_btn.clicked.connect(lambda: self.edit_modes_off())
@@ -415,9 +422,33 @@ class MainWindow(QMainWindow):
         else:
             logger.warning('Change download directory has been canceled')
 
-    def trim_song(self) -> None:
+    def make_lyrics(self):
+        self.trim_mode = False
         slider_position = self.song_slider.value()
+        if not self.lyrics_mode:
+            self.timestamp_start = datetime.timedelta(seconds=slider_position)
+            self.time1_inp.setText(str(self.timestamp_start))
+            self.lyrics_mode = True
+            self.action_lbl.show()
+            self.action_lbl.setText('Lyrics mode')
+        elif self.lyrics_mode:
+            self.timestamp_stop = datetime.timedelta(seconds=slider_position)
+            self.time2_inp.setText(str(self.timestamp_stop))
+            self.lyrics_mode = False
+            self.action_lbl.setText('')
+            self.action_lbl.hide()
+            if self.valid_timestamps(self.timestamp_start, self.timestamp_stop):
+                lyrics_creator = Creator(self.player, LYRICS_DIR)
+                lyrics_creator.init()
+                line, accepted = QInputDialog.getText(self, "Lyrics editing", "Add line:")
+                if accepted:
+                    lyrics_creator.write_line(line, self.time1_inp.text(), self.time2_inp.text())
+                    self.lyrics = Renderer(get_lyrics_file(LYRICS_DIR, self.player,
+                                                           Renderer.EXTENSION))
 
+    def trim_song(self) -> None:
+        self.lyrics_mode = False
+        slider_position = self.song_slider.value()
         if not self.trim_mode:
             self.timestamp_start = datetime.timedelta(seconds=slider_position)
             self.time1_inp.setText(str(self.timestamp_start))
@@ -487,6 +518,7 @@ class MainWindow(QMainWindow):
             log = f"Lyrics for {self.player.disk.song_name} has been set"
             logger.success(log)
             self._show_popup(log)
+            self.lyrics = Renderer(get_lyrics_file(LYRICS_DIR, self.player, Renderer.EXTENSION))
         except FileNotFoundError:
             logger.warning(f"{get_datetime()} File manager closed unexpectedly")
             # The file explorer was probably closed
