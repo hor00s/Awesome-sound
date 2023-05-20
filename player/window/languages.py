@@ -1,3 +1,4 @@
+from types import MappingProxyType
 from itertools import combinations
 from actions import Language
 from typing import (
@@ -11,8 +12,9 @@ class LanguageError(Exception):
     ...
 
 
-LANGUAGE = {
-    'en': {
+LANGUAGE = MappingProxyType({
+    # ENGLISH
+    'en': MappingProxyType({
         'init_app_msg': 'Initializing application',
         'init_media_msg': 'Setting up media devices',
         'init_complete_msg': 'Ui setup is completed',
@@ -61,9 +63,10 @@ LANGUAGE = {
         'delay_invalid': 'Invalid value for delay',
         'import_lyrics': 'Lyrics has been imported from ',  # src directory
         'language_changed': 'App\'s language has been changed',
-    },
+    }),
 
-    'gr': {
+    # GREEK
+    'gr': MappingProxyType({
         'init_app_msg': 'Εκκίνηση εφαρμογής',
         'init_media_msg': 'Ρύθμιση πολυμέσων',
         'init_complete_msg': 'Η ρύθμιση του UI ολοκληρώθηκε',
@@ -112,8 +115,8 @@ LANGUAGE = {
         'delay_invalid': 'Μη έγκυρη τιμή',
         'import_lyrics': 'Οι στίχοι έχουν εισαχθεί από ',
         'language_changed': 'Η γλώσσα της εφαρμογής άλλαξε',
-    },
-}
+    }),
+})
 
 
 def get_available_languages() -> Tuple[str, ...]:
@@ -130,7 +133,7 @@ def find_diff() -> str:
     for d1, d2 in data:
         get_dif = set(LANGUAGE[d1].keys()) ^ set(LANGUAGE[d2].keys())
         if get_dif:
-            form = {'missing_from': d2, 'values': get_dif}
+            form = {'between': (d1, d2), 'values': get_dif}
             df.append(form)
 
     for diff in df:

@@ -213,7 +213,7 @@ class MainWindow(QMainWindow):
         self.actionLength_increasing.triggered.connect(lambda: self.order_by('length', False))
         self.actionLength_decreasing.triggered.connect(lambda: self.order_by('length', True))
         self.actionOriginal.triggered.connect(lambda: self.order_by('original'))
-        self.actionLanguage.triggered.connect(lambda: self.select_language())  # TODO: Finish this
+        self.actionLanguage.triggered.connect(lambda: self.select_language())
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
