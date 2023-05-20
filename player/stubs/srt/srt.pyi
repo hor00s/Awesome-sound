@@ -11,6 +11,12 @@ class Subtitle:
     content: str
 
 
+class SRTParseError(Exception):
+    expected_start: Any
+    acrual_start: Any
+    unmatched_content: Any
+
+
 def parse(
     str: str,
     ignore_errors: bool = False,

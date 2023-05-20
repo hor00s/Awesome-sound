@@ -38,7 +38,7 @@ def log_error(err: Exception) -> None:
     :param err: The error object that occured
     :type err: Exception
     """
-    long_error = traceback.format_exc().replace('\n', ' ')
+    long_error = traceback.format_exc()
     err_format = f"""{get_datetime()}
 Short description: {err}
 Detailed description: {long_error}"""

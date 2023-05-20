@@ -1,3 +1,6 @@
+import srt
+from .languages import get_message
+from actions import get_active_language
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
 from typing import (
@@ -10,6 +13,7 @@ from .qstyles import (
     status_bar_btn_style,
 )
 from PyQt5.QtWidgets import (
+    QPlainTextEdit,
     QScrollArea,
     QPushButton,
     QMessageBox,
@@ -107,4 +111,68 @@ class ComboboxDialog(QDialog):
 
     def closeEvent(self, a0: Any) -> None:
         self.cancel()
-        super().closeEvent(a0)
+
+
+class TextEditor(QDialog):
+    def __init__(self, parent: QWidget, title: str, prompt: str, text: str = ""):
+        super().__init__(parent)
+        self._r_value = (False, '')
+
+        layout = QVBoxLayout()
+        self.setWindowTitle(title)
+        prompt_lbl = QLabel(self)
+        prompt_lbl.setText(prompt)
+
+        self.error_lbl = QLabel(self)
+
+        self.textarea = QPlainTextEdit(self)
+        self.textarea.setPlainText(text)
+
+        save_btn = QPushButton(self)
+        save_btn.setText('Save')
+        cancel_btn = QPushButton(self)
+        cancel_btn.setText('Cancel')
+
+        cancel_btn.clicked.connect(self.reject)  # type: ignore
+        save_btn.clicked.connect(self.accept)  # type: ignore
+
+        layout.addWidget(prompt_lbl)
+        layout.addWidget(self.textarea)
+        layout.addWidget(save_btn)
+        layout.addWidget(cancel_btn)
+        layout.addWidget(self.error_lbl)
+
+        self.setLayout(layout)
+        self.exec_()
+
+    def closeEvent(self, a0: Any) -> None:
+        self.reject()
+
+    def accept(self) -> None:
+        self._r_value = True, self.textarea.toPlainText()
+        _, lyrics = self._r_value
+        try:
+            tuple(srt.parse(lyrics))
+        except srt.SRTParseError:
+            lang = get_active_language()
+            msg = get_message(lang, 'general_error')
+            self.error_lbl.setText(msg)
+        else:
+            super().accept()
+
+    def reject(self) -> None:
+        self._r_value = False, ''
+        super().reject()
+
+    def accepted(self) -> bool:  # type: ignore
+        v, _ = self._r_value
+        return v
+
+    def save(self, path: str) -> None:
+        _, text = self._r_value
+        with open(path, mode='w') as f:
+            f.write(text)
+
+    def get_text(self) -> str:
+        _, text = self._r_value
+        return text

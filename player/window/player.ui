@@ -386,6 +386,7 @@
     <addaction name="actionChoose_file"/>
     <addaction name="actionDelay"/>
     <addaction name="actionDelete"/>
+    <addaction name="actionEdit"/>
    </widget>
    <widget class="QMenu" name="menuLogs">
     <property name="title">
@@ -543,6 +544,11 @@
   <action name="actionLanguage">
    <property name="text">
     <string>Language</string>
+   </property>
+  </action>
+  <action name="actionEdit">
+   <property name="text">
+    <string>Edit</string>
    </property>
   </action>
  </widget>

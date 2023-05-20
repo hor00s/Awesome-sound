@@ -63,6 +63,10 @@ LANGUAGE = MappingProxyType({
         'delay_invalid': 'Invalid value for delay',
         'import_lyrics': 'Lyrics has been imported from ',  # src directory
         'language_changed': 'App\'s language has been changed',
+        'general_error': 'an error has occurred',
+        'edit_lyrics_prompt': 'Edit lyrics for ',  # song name
+        'edit_lyrics': 'Edit lyrics',
+        'lyrics_saved': 'Lyrics have been saved successfully for ',  # song name
     }),
 
     # GREEK
@@ -115,6 +119,10 @@ LANGUAGE = MappingProxyType({
         'delay_invalid': 'Μη έγκυρη τιμή',
         'import_lyrics': 'Οι στίχοι έχουν εισαχθεί από ',
         'language_changed': 'Η γλώσσα της εφαρμογής άλλαξε',
+        'general_error': 'Παρουσιάστηκε σφάλμα',
+        'edit_lyrics_prompt': 'Επεξεργασία στίχων για το ',
+        'edit_lyrics': 'Επεξεργασία στίχων',
+        'lyrics_saved': 'Οι στίχοι αποθηκεύτηκαν με επιτυχία για το ',
     }),
 })
 
@@ -195,6 +203,11 @@ Field = Literal[
     'delay_set',
     'delay_invalid',
     'import_lyrics',
+    'language_changed',
+    'general_error',
+    'edit_lyrics_prompt',
+    'edit_lyrics',
+    'lyrics_saved',
 ]
 
 

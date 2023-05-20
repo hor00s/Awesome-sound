@@ -82,6 +82,7 @@ from .customwidgets import (
     ScrollMessageBox,
     StatusBarButton,
     ComboboxDialog,
+    TextEditor,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -214,6 +215,7 @@ class MainWindow(QMainWindow):
         self.actionLength_decreasing.triggered.connect(lambda: self.order_by('length', True))
         self.actionOriginal.triggered.connect(lambda: self.order_by('original'))
         self.actionLanguage.triggered.connect(lambda: self.select_language())
+        self.actionEdit.triggered.connect(lambda: self.edit_lyrics())
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
@@ -379,6 +381,26 @@ class MainWindow(QMainWindow):
         for song in self.player.disk:
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
+
+    def edit_lyrics(self):
+        lang = get_active_language()
+        dt = get_datetime()
+
+        lyrics_file = get_lyrics_file(LYRICS_DIR, self.player, '.srt')
+        song = self.player.disk.song_name
+        with open(lyrics_file, mode='r') as f:
+            lyrics = f.read()
+
+        title, prompt = (get_message(lang, 'edit_lyrics'),
+                         get_message(lang, 'edit_lyrics_prompt', song))
+        q = TextEditor(self, title, prompt, lyrics)
+        if q.accepted():
+            q.save(lyrics_file)
+            self.lyrics = Renderer(get_lyrics_file(LYRICS_DIR, self.player,
+                                                   Renderer.EXTENSION))
+            msg = get_message(lang, 'lyrics_saved', song)
+            logger.success(f"{dt} {msg}")
+            self._show_popup(msg)
 
     def select_language(self) -> None:
         text = f"Select your language. (Current {get_active_language().title()}.)"
