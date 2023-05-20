@@ -67,6 +67,10 @@ LANGUAGE = MappingProxyType({
         'edit_lyrics_prompt': 'Edit lyrics for ',  # song name
         'edit_lyrics': 'Edit lyrics',
         'lyrics_saved': 'Lyrics have been saved successfully for ',  # song name
+        'donwload': 'Download',
+        'donwload_prompt': 'Donwload a song',
+        'download_done': 'Download completed',
+        'invalid_url': 'Invalid url',
     }),
 
     # GREEK
@@ -123,6 +127,10 @@ LANGUAGE = MappingProxyType({
         'edit_lyrics_prompt': 'Επεξεργασία στίχων για το ',
         'edit_lyrics': 'Επεξεργασία στίχων',
         'lyrics_saved': 'Οι στίχοι αποθηκεύτηκαν με επιτυχία για το ',
+        'donwload': 'Λήψη',
+        'donwload_prompt': 'Λήψη τραγουδιού',
+        'download_done': 'Η λήψη ολοκληρώθηκε',
+        'invalid_url': 'Μη έγκυρο url',
     }),
 })
 
@@ -208,6 +216,10 @@ Field = Literal[
     'edit_lyrics_prompt',
     'edit_lyrics',
     'lyrics_saved',
+    'donwload',
+    'donwload_prompt',
+    'download_done',
+    'invalid_url',
 ]
 
 

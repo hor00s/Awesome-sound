@@ -99,6 +99,7 @@ VERISONS: Tuple[str, ...] = (
     'v.1.3',
     'v.1.4',
     'v.1.5',
+    'v.1.6',
 )
 
 SHORTCUTS: Dict[str, str] = {

@@ -1,3 +1,13 @@
+__author__ = 'hor00s'
+__email__ = 'hor00s199@gmail.com'
+__status__ = 'alpha'
+__license__ = 'MIT'
+__credits__ = ''
+__maintainers__ = (
+    'hor00s',
+)
+
+
 import sys
 from window.uiactions import log_error
 from PyQt5.QtWidgets import QApplication

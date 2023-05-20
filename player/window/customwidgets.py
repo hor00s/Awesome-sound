@@ -2,9 +2,15 @@ import srt
 from .languages import get_message
 from actions import get_active_language
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import (
+    QObject,
+    Qt,
+    QThread,
+    pyqtSignal
+)
 from typing import (
     Optional,
+    Callable,
     Tuple,
     Any,
 )
@@ -176,3 +182,18 @@ class TextEditor(QDialog):
     def get_text(self) -> str:
         _, text = self._r_value
         return text
+
+
+class WorkerThread(QThread):
+    finished = pyqtSignal()  # type: ignore
+
+    def __init__(self, parent: QObject, func: Callable[..., Any],
+                 *args: Any, **kwargs: Any) -> None:
+        super().__init__(parent)
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+
+    def run(self) -> None:
+        self.func(*self.args, **self.kwargs)
+        self.finished.emit()  # type: ignore

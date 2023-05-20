@@ -4,6 +4,8 @@ import pyglet
 import random
 import datetime
 import webbrowser
+from pytube.helpers import regex_search
+from pytube.exceptions import RegexMatchError
 from pydub import AudioSegment
 from comps import MusicPlayer
 from tinytag import TinyTag
@@ -45,6 +47,7 @@ from .uiactions import (
     rename,
     search_song,
     time_to_total_seconds,
+    download_audio,
 )
 from lyricshandler import (
     Renderer,
@@ -83,6 +86,7 @@ from .customwidgets import (
     StatusBarButton,
     ComboboxDialog,
     TextEditor,
+    WorkerThread,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -216,6 +220,7 @@ class MainWindow(QMainWindow):
         self.actionOriginal.triggered.connect(lambda: self.order_by('original'))
         self.actionLanguage.triggered.connect(lambda: self.select_language())
         self.actionEdit.triggered.connect(lambda: self.edit_lyrics())
+        self.actionDownload.triggered.connect(lambda: self.download_audio())
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
@@ -632,6 +637,30 @@ class MainWindow(QMainWindow):
         types = make_file_types(file_types)
         paths, _ = QFileDialog.getOpenFileNames(self, "Choose files", "", types)
         return paths
+
+    def _download_finished(self) -> None:
+        lang = get_active_language()
+        dt = get_datetime()
+
+        self.update_song_list(get_song_list(SONGS_DIR))
+        msg = get_message(lang, 'download_done')
+        logger.success(f"{dt} {msg}")
+        self._show_popup(msg)
+
+    def download_audio(self) -> None:
+        lang = get_active_language()
+        title, prompt = get_message(lang, 'donwload'), get_message(lang, 'donwload_prompt')
+        text, accepted = QInputDialog.getText(self, title, prompt)
+        if accepted:
+            try:
+                regex_search('(?:v=|\/)([0-9A-Za-z_-]{11}).*', text, 0)  # noqa
+            except RegexMatchError:
+                msg = get_message(lang, 'invalid_url')
+                self._show_popup(msg)
+            else:
+                download_thread = WorkerThread(self, download_audio, text, SONGS_DIR)
+                download_thread.finished.connect(lambda: self._download_finished())
+                download_thread.start()
 
     def search_song(self) -> None:
         text = self.search_ln.text()

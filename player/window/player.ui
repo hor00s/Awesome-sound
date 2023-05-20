@@ -412,6 +412,7 @@
     <addaction name="actionAlphaberical"/>
     <addaction name="actionLength_increasing"/>
     <addaction name="actionLength_decreasing"/>
+    <addaction name="actionDownload"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -549,6 +550,11 @@
   <action name="actionEdit">
    <property name="text">
     <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionDownload">
+   <property name="text">
+    <string>Download</string>
    </property>
   </action>
  </widget>

@@ -2,6 +2,7 @@ import os
 import shutil
 import traceback
 import datetime
+from pytube import YouTube
 from jsonwrapper import Handler
 from lyricshandler import Creator
 from .languages import get_message
@@ -315,3 +316,15 @@ def time_to_total_seconds(time: str) -> float:
     total_seconds = datetime.timedelta(hours=time_obj.hour, minutes=time_obj.minute,
                                        seconds=time_obj.second).seconds
     return total_seconds
+
+
+def download_audio(yt_link: str, dst_path: str) -> None:
+    video = YouTube(yt_link)
+    video = video.streams.get_audio_only()  # type: ignore
+
+    path = video.download(dst_path)
+
+    audio_name = path.split(os.sep)[-1]
+    audio_name = path.split(os.sep)[-1][:audio_name.rfind('.')] + '.mp3'
+
+    os.rename(path, os.path.join(dst_path, audio_name))
