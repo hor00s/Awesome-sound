@@ -4,6 +4,7 @@ from logger import Logger
 from jsonwrapper import Handler
 from pathlib import Path
 from typing import (
+    Literal,
     Tuple,
     Dict,
     Any,
@@ -38,7 +39,20 @@ __all__ = (
     'logger',
     'config',
     'get_song_list',
+    'Language',
+    'get_active_language',
 )
+
+
+Language = Literal[
+    'en',
+    'gr',
+]
+
+
+def get_active_language() -> Language:
+    language: Language = config['language']
+    return language
 
 
 def lyrics_dir(base_dir: Path) -> str:
@@ -84,6 +98,7 @@ VERISONS: Tuple[str, ...] = (
     'v.1.2',
     'v.1.3',
     'v.1.4',
+    'v.1.5',
 )
 
 SHORTCUTS: Dict[str, str] = {
@@ -93,10 +108,13 @@ SHORTCUTS: Dict[str, str] = {
     'DELETE SONG': 'del',
     'MUTE': 'm',
     'TRIM TRIGGER': 't',
+    'LYRICS TRIGGER': 'l',
     'MAIN WINDOW FOCUS': 'esc',
+    'SELECT SONG': 'Enter',
 }
 
 CONFIG: Dict[Any, Any] = {
+    'language': 'en',
     'max_frame_rate': 20,
     'download_dir': str(DONWLOAD_DIR),
     'volume': 100,
@@ -114,6 +132,7 @@ SUPPORTED_LYRICS_FORMATS: Tuple[str, ...] = (
 
 # CONFIG EXAMPLE
 #  {
+#      "language": 'en'
 #      "max_frame_rate": 20,
 #      "download_dir": "~/Downloads" (Configurable)
 #      "volume": 59,

@@ -2,8 +2,9 @@ import os
 import shutil
 import traceback
 import datetime
-from lyricshandler import Creator
 from jsonwrapper import Handler
+from lyricshandler import Creator
+from .languages import get_message
 from typing import (
     List,
     Tuple,
@@ -16,6 +17,7 @@ from comps import (
 )
 from actions import (
     logger,
+    get_active_language
 )
 
 
@@ -101,20 +103,22 @@ def set_lyrics_delay(key: str, delay: Union[str, float], config: Handler) -> Non
     :param config: The app's main config Handler
     :type config: Handler
     """
+    lang = get_active_language()
+    dt = get_datetime()
     try:
         delay = float(delay)
         if key in config:
             prev_delay = config.get(key)
             config.edit(key, delay)
-            msg = f"{get_datetime()} Delay was changed for {key} from `{prev_delay}` -> `{delay}`"
+            msg = f"{dt} {get_message(lang, 'delay_changed', key, prev_delay, '->', delay)}"
             logger.debug(msg)
         else:
             config.add(key, delay)
-            msg = f"{get_datetime()} Delay has been set for {key} to `{delay}` seconds"
+            msg = f"{dt} {get_message(lang, 'delay_set', key, '->', delay)}"
             logger.debug(msg)
     except ValueError:
-        logger.warning(f"{get_datetime()} {delay} is not allowed\
- as value for lyrics delay. Please choose a numeric one")
+        msg = f"{dt} {get_message(lang, 'delay_invalid', delay)}"
+        logger.warning(msg)
         # User passed non numeric value
 
 
@@ -147,9 +151,11 @@ def manual_save_lyrics(path: str, player: MusicPlayer, lyrics_dir: str) -> str:
     :return: The path to the lyric's file in the app's lyrics dir
     :rtype: str
     """
+    dt = get_datetime()
+    lang = get_active_language()
     creator = Creator(player, lyrics_dir)
     lyrics_location = creator.manual_save(path)
-    logger.debug(f"{get_datetime()} Lyrics file moved from {path} -> {lyrics_location}")
+    logger.debug(f"{dt} {get_message(lang, 'import_lyrics'), path}")
     return lyrics_location
 
 
@@ -204,8 +210,9 @@ def import_songs(songs: List[str], target_dir: str) -> None:
     :type target_dir: str
     """
     for song in songs:
-        shutil.copy(song, target_dir)
-        logger.debug(f"{song} -> {target_dir}")
+        if song != os.path.join(target_dir, song):
+            shutil.copy(song, target_dir)
+            logger.debug(f"{song} -> {target_dir}")
 
 
 def delete_song(path: str, song_name: str) -> None:
@@ -228,8 +235,9 @@ def delete_song(path: str, song_name: str) -> None:
 
 def export_song(path: str, song_mp3: str, target_dir: str) -> None:
     src = os.path.join(path, song_mp3)
-    shutil.copy(src, target_dir)
-    # TODO: Test
+    if src != os.path.join(target_dir, song_mp3):
+        shutil.copy(src, target_dir)
+        # TODO: Test
 
 
 def even_spaces(first_word: str, space_buffer: int) -> str:
@@ -248,7 +256,7 @@ def even_spaces(first_word: str, space_buffer: int) -> str:
             'word      something'
             >>> msg2
             'or        text'
-            >>> # combined
+            >>> f"{msg1}\\n{msg2}"
             >>> 'word      something'
             >>> 'or        text'
         ```

@@ -384,7 +384,6 @@
      <string>Lyrics</string>
     </property>
     <addaction name="actionChoose_file"/>
-    <addaction name="actionCreate"/>
     <addaction name="actionDelay"/>
     <addaction name="actionDelete"/>
    </widget>
@@ -401,6 +400,7 @@
     </property>
     <addaction name="actionReset"/>
     <addaction name="actionMax_frame_rate"/>
+    <addaction name="actionLanguage"/>
    </widget>
    <widget class="QMenu" name="menuPlaylist">
     <property name="title">
@@ -538,6 +538,11 @@
   <action name="actionOriginal">
    <property name="text">
     <string>Original</string>
+   </property>
+  </action>
+  <action name="actionLanguage">
+   <property name="text">
+    <string>Language</string>
    </property>
   </action>
  </widget>
