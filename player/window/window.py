@@ -69,6 +69,7 @@ from actions import (
     RECORD_BTN,
     BACKGROUND,
     FORWARD_ARR,
+    ACTIONS_DIR,
     LYRICS_ICON,
     SOURCE_CODE,
     BACKWARD_ARR,
@@ -85,8 +86,10 @@ from .customwidgets import (
     ScrollMessageBox,
     StatusBarButton,
     ComboboxDialog,
-    TextEditor,
+    ActionsWindow,
     WorkerThread,
+    TextEditor,
+    State,
 )
 from PyQt5.QtWidgets import (
     QLabel,
@@ -153,7 +156,7 @@ class MainWindow(QMainWindow):
         self.music_container.itemDoubleClicked.connect(
             lambda: self.manual_pick(self.music_container)
         )
-        self.volume_bar.valueChanged.connect(lambda: self.volume_control())
+        self.volume_bar.valueChanged.connect(lambda: self.volume_control(self.volume_bar.value()))
         self.next_btn.clicked.connect(lambda: self.next_song())
         self.prev_btn.clicked.connect(lambda: self.prev_song())
         self.mute_btn.clicked.connect(lambda: self.mute_player())
@@ -221,6 +224,7 @@ class MainWindow(QMainWindow):
         self.actionLanguage.triggered.connect(lambda: self.select_language())
         self.actionEdit.triggered.connect(lambda: self.edit_lyrics())
         self.actionDownload.triggered.connect(lambda: self.download_audio())
+        self.actionActions.triggered.connect(lambda: self.actions())
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
@@ -420,6 +424,46 @@ class MainWindow(QMainWindow):
             msg = get_message(lang, 'language_changed')
             logger.success(f"{get_datetime()} {msg}")
             self._show_popup(msg)
+
+    def actions(self):
+        actions = ActionsWindow(self, ACTIONS_DIR)
+        actions.set_up('title')
+        if actions.accepted():
+            action = actions.save()
+
+            dt = get_datetime()
+            lang = get_active_language()
+            msg = get_message(lang, 'action_saved', action.name)
+            logger.success(f"{dt} {msg}")
+
+            self._show_popup(msg)
+
+    def apply_action(self, state: State):
+        name, _, playback, mute, volume, _ = state
+
+        self.volume_control(volume)
+        if playback and not self.player._is_playing or not playback and self.player._is_playing:
+            self.play_btn_switcher()
+
+        if mute and not self.player._is_muted or not mute and self.player._is_muted:
+            self.mute_player()
+        self.volume_control(volume)
+
+        lang = get_active_language()
+
+        msg = get_message(lang, 'action_loaded', name)
+        dt = get_datetime()
+        self._show_popup(msg)
+        logger.success(f"{dt} {msg}")
+
+    def check_actions(self):
+        actions = ActionsWindow(self, ACTIONS_DIR)
+        for action in actions.get():
+            dt = ActionsWindow.dt_to_action_dt(datetime.datetime.now())
+            action_dt = ActionsWindow.string_to_dt(action.datetime)
+            if dt == action_dt and not action.applied:
+                self.apply_action(action)
+                actions.mark_applied(action)
 
     def small_step(self, step: int) -> None:
         current_seconds = self.song_slider.value() / 60
@@ -829,10 +873,10 @@ class MainWindow(QMainWindow):
         self.play_btn.setIcon(QtGui.QIcon(img))
         return img
 
-    def volume_control(self) -> None:
-        edit_volume(config, self.player, self.volume_bar.value())
+    def volume_control(self, volume: int) -> None:
+        edit_volume(config, self.player, volume)
 
-        self.volume_lbl.setText(f"Vol: {self.volume_bar.value()}")
+        self.volume_lbl.setText(f"Vol: {volume}")
         if not self.player.is_muted:
             self.sound.volume = self.player.volume / 100
         #                                          ^^^^^
@@ -871,7 +915,7 @@ class MainWindow(QMainWindow):
         total_time_to_minute = str(datetime.timedelta(seconds=total_time))
 
         if not self.player.is_muted:
-            self.volume_control()
+            self.volume_control(self.volume_bar.value())
         elif self.player.is_muted:
             self.sound.volume = 0
 
@@ -885,3 +929,4 @@ class MainWindow(QMainWindow):
         if '.' in current_time_text:
             current_time_text = current_time_text[:current_time_text.index('.') + 3]
             self.current_time_lbl.setText(current_time_text)
+        self.check_actions()

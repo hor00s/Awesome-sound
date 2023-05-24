@@ -1,17 +1,30 @@
+import os
 import srt
+import json
+import datetime as dt
 from .languages import get_message
 from actions import get_active_language
 from PyQt5 import QtGui
+from actions import (
+    PLAY_BTN,
+    MUTE_BTN,
+    PAUSE_BTN,
+)
 from PyQt5.QtCore import (
-    QObject,
     Qt,
     QThread,
-    pyqtSignal
+    QObject,
+    QDateTime,
+    pyqtSignal,
 )
 from typing import (
+    NamedTuple,
+    Generator,
     Optional,
     Callable,
     Tuple,
+    Dict,
+    List,
     Any,
 )
 from .qstyles import (
@@ -20,13 +33,16 @@ from .qstyles import (
 )
 from PyQt5.QtWidgets import (
     QPlainTextEdit,
+    QDateTimeEdit,
     QScrollArea,
+    QGridLayout,
     QPushButton,
     QMessageBox,
     QVBoxLayout,
     QComboBox,
     QLineEdit,
     QDialog,
+    QSlider,
     QWidget,
     QLabel,
 )
@@ -197,3 +213,216 @@ class WorkerThread(QThread):
     def run(self) -> None:
         self.func(*self.args, **self.kwargs)
         self.finished.emit()  # type: ignore
+
+
+class State(NamedTuple):
+    name: str
+    datetime: str
+    playback: bool
+    mute: bool
+    volume: int
+    applied: bool
+
+
+class ActionsWindow(QDialog):
+    # TODO: Docstrings
+    def __init__(self, parent: QWidget, actions_dir: str) -> None:
+        super().__init__(parent)
+        self._current_actions: Dict[str, State] = {}
+        self._actions_dir = actions_dir
+        self._actions_buffer = self.buf_actions()
+
+        self._accepted = False
+        self._mute_state = False
+        self._playback_state = False
+
+    def set_up(self, title: str) -> None:
+        self.setWindowTitle(title)
+        self.my_layout = QGridLayout()
+        self.setFixedWidth(200)
+
+        self.action_name = QLineEdit(self)
+
+        self.dtedit = QDateTimeEdit(self)
+        self.dtedit.setDateTime(dt.datetime.now())
+        self.dtedit.setDisplayFormat('yyyy-MM-dd hh:mm')
+
+        self.play_btn = QPushButton(self)
+        self.pause_btn = QPushButton(self)
+        self.mute_btn = QPushButton(self)
+        self.vol_slider = QSlider(Qt.Horizontal, self)  # type: ignore
+        self.vol_lbl = QLabel(self)
+
+        self.play_btn.setIcon(QtGui.QIcon(PLAY_BTN))
+        self.pause_btn.setIcon(QtGui.QIcon(PAUSE_BTN))
+        self.mute_btn.setIcon(QtGui.QIcon(MUTE_BTN))
+
+        self.vol_slider.setMaximum(100)
+        self.vol_lbl.setText(str(self.vol_slider.value()))
+
+        self.load_action_btn = QPushButton(self)
+        self.delete_action_btn = QPushButton(self)
+        self.load_action_btn.setText('Load')
+        self.delete_action_btn.setText('Delete')
+
+        self.actions_box = QComboBox(self)
+
+        self.save_btn = QPushButton(self)
+        self.save_btn.setText('Save state')
+
+        self.set_playback_state(False)
+        self.vol_slider.setValue(50)
+        self.set_volume()
+
+        self.mute_btn.clicked.connect(  # type: ignore
+            lambda: self.set_mute_state(not self._mute_state)
+        )
+        self.play_btn.clicked.connect(lambda: self.set_playback_state(True))  # type: ignore
+        self.pause_btn.clicked.connect(lambda: self.set_playback_state(False))  # type: ignore
+        self.vol_slider.valueChanged.connect(lambda: self.set_volume())  # type: ignore
+        self.save_btn.clicked.connect(lambda: self.finish())  # type: ignore
+        self.load_action_btn.clicked.connect(lambda: self.edit())  # type: ignore
+        self.delete_action_btn.clicked.connect(lambda: self.delete())  # type: ignore
+
+        self.setLayout(self.my_layout)
+        self.my_layout.addWidget(self.action_name, 0, 0, 1, 2)
+        self.my_layout.addWidget(self.dtedit, 1, 0, 1, 2)
+        self.my_layout.addWidget(self.play_btn, 2, 0)
+        self.my_layout.addWidget(self.pause_btn, 2, 1)
+        self.my_layout.addWidget(self.mute_btn, 3, 0, 1, 2)
+        self.my_layout.addWidget(self.vol_slider, 4, 0, 1, 2)
+        self.my_layout.addWidget(self.vol_lbl, 5, 0, 1, 2)
+        self.my_layout.addWidget(self.load_action_btn, 6, 0)
+        self.my_layout.addWidget(self.delete_action_btn, 6, 1)
+        self.my_layout.addWidget(self.actions_box, 7, 0, 1, 2)
+        self.my_layout.addWidget(self.save_btn, 8, 0, 1, 2)
+
+        self.display()
+        self.edit()
+
+        self.exec_()
+
+    def closeEvent(self, a0: Any) -> None:
+        self._accepted = False
+        self.reject()
+        super().closeEvent(a0)
+
+    def finish(self) -> None:
+        if self.action_name.text():
+            self._accepted = True
+            self.accept()
+
+    def accepted(self) -> bool:  # type: ignore
+        return self._accepted
+
+    def set_playback_state(self, state: bool) -> None:
+        self._playback_state = state
+        if self._playback_state:
+            self.play_btn.setStyleSheet('background-color: green;')
+            self.pause_btn.setStyleSheet('')
+        elif not self._playback_state:
+            self.play_btn.setStyleSheet('')
+            self.pause_btn.setStyleSheet('background-color: green;')
+
+    def set_mute_state(self, state: bool) -> None:
+        self._mute_state = state
+        if self._mute_state:
+            self.mute_btn.setStyleSheet('background-color: green;')
+        elif not self._mute_state:
+            self.mute_btn.setStyleSheet('')
+
+    def set_volume(self) -> None:
+        self.vol_lbl.setText(str(self.vol_slider.value()))
+
+    @staticmethod
+    def string_to_dt(datetime: str) -> dt.datetime:
+        return dt.datetime.strptime(datetime, '%Y-%m-%d %H:%M')
+
+    @staticmethod
+    def dt_to_action_dt(datetime: dt.datetime) -> dt.datetime:
+        time = f"{datetime.year}-{datetime.month}-{datetime.day} {datetime.hour}:{datetime.minute}"
+        return ActionsWindow.string_to_dt(time)
+
+    @staticmethod
+    def qtdate_to_string(datetime: QDateTime) -> str:
+        date = datetime.date()
+        time = datetime.time()
+        return f"{date.year()}-{date.month()}-{date.day()} {time.hour()}:{time.minute()}"
+
+    def _save(self, state: State) -> None:
+        name = self.action_name.text()
+        file = f"{name}.json"
+        path = os.path.join(self._actions_dir, file)
+        with open(path, mode='w') as f:
+            json.dump(state, f)
+        self._actions_buffer = self.buf_actions()
+
+    def mark_applied(self, state: State) -> None:
+        name = state.name
+        file = f"{name}.json"
+        path = os.path.join(self._actions_dir, file)
+        with open(path, mode='r') as f:
+            state = State(*json.load(f))
+        new_state = State(state.name, state.datetime, state.playback,
+                          state.mute, state.volume, applied=True)
+        with open(path, mode='w') as f:
+            json.dump(list(new_state), f)
+
+    def delete(self) -> None:
+        name = self.action_name.text()
+        file = f"{name}.json"
+        path = os.path.join(self._actions_dir, file)
+        os.remove(path)
+        self._actions_buffer = self.buf_actions()
+        self.display()
+        self.edit()
+
+    def save(self) -> State:
+        name = self.action_name.text()
+
+        datetime = self.qtdate_to_string(self.dtedit.dateTime())
+        pb = self._playback_state
+        mute = self._mute_state
+        vol = self.vol_slider.value()
+
+        state = State(name, datetime, pb, mute, vol, applied=False)
+        self._save(state)
+        return state
+
+    def buf_actions(self) -> List[State]:
+        """Load all the saved actions in memmory so we don't
+        have to always go and re-read them
+
+        :return:
+        :rtype: List[State]
+        """
+        actions = []
+        for file in os.listdir(self._actions_dir):
+            path = os.path.join(self._actions_dir, file)
+            with open(path, mode='r') as f:
+                state = State(*json.load(f))
+            actions.append(state)
+        return actions
+
+    def display(self) -> None:
+        self.actions_box.clear()
+        for action in self._actions_buffer:
+            name = action.name
+            self.actions_box.addItem(name)
+
+    def edit(self) -> None:
+        name = self.actions_box.currentText()
+        if name:
+            file = f"{name}.json"
+            path = os.path.join(self._actions_dir, file)
+            with open(path, mode='r') as f:
+                state = State(*json.load(f))
+
+            self.action_name.setText(state.name)
+            self.dtedit.setDateTime(ActionsWindow.string_to_dt(state.datetime))
+            self.set_playback_state(state.playback)
+            self.set_mute_state(state.mute)
+            self.vol_slider.setValue(state.volume)
+
+    def get(self) -> Generator[State, Any, None]:
+        yield from self._actions_buffer

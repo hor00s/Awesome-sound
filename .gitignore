@@ -8,3 +8,4 @@ player/jsonwrapper/testconfig.json
 .logs.txt
 *.sh
 window.ui_test_dir
+.actions

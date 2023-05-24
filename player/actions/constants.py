@@ -28,6 +28,7 @@ __all__ = (
     'LOGO',
     'PLAYERUI',
     'LYRICS_DIR',
+    'ACTIONS_DIR',
     'THEMECLR',
     'TITLE',
     'VERISONS',
@@ -41,6 +42,7 @@ __all__ = (
     'get_song_list',
     'Language',
     'get_active_language',
+    'get_actions_dir',
 )
 
 
@@ -57,6 +59,13 @@ def get_active_language() -> Language:
 
 def lyrics_dir(base_dir: Path) -> str:
     file = Path(base_dir, 'lyrics')
+    if not os.path.exists(file):
+        os.mkdir(file)
+    return str(file)
+
+
+def get_actions_dir(base_dir: Path) -> str:
+    file = Path(base_dir, '.actions')
     if not os.path.exists(file):
         os.mkdir(file)
     return str(file)
@@ -83,6 +92,7 @@ LYRICS_ICON: str = os.path.join(BASE_DIR, 'player', 'images', 'song-lyrics.png')
 LOGO: str = os.path.join(BASE_DIR, 'player', 'images', 'applogo.png')
 PLAYERUI: str = os.path.join(BASE_DIR, 'player', 'window', 'player.ui')
 CONFIG_FILE = os.path.join(BASE_DIR, '.config.json')
+ACTIONS_DIR: str = get_actions_dir(BASE_DIR)
 LYRICS_DIR: str = lyrics_dir(BASE_DIR)
 THEMECLR: str = 'rgb(0,206,209)'
 TITLE: str = 'Awesome sound'

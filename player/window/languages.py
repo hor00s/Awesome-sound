@@ -71,6 +71,8 @@ LANGUAGE = MappingProxyType({
         'donwload_prompt': 'Donwload a song',
         'download_done': 'Download completed',
         'invalid_url': 'Invalid url',
+        'action_loaded': 'Action has been loaded ',  # action name
+        'action_saved': 'An action has been saved: ',  # action name
     }),
 
     # GREEK
@@ -131,6 +133,8 @@ LANGUAGE = MappingProxyType({
         'donwload_prompt': 'Λήψη τραγουδιού',
         'download_done': 'Η λήψη ολοκληρώθηκε',
         'invalid_url': 'Μη έγκυρο url',
+        'action_loaded': 'Η ενέργεια έχει φορτωθεί: ',
+        'action_saved': 'Η ενέργεια έχει ρυθμιστει: ',
     }),
 })
 
@@ -220,6 +224,8 @@ Field = Literal[
     'donwload_prompt',
     'download_done',
     'invalid_url',
+    'action_loaded',
+    'action_saved',
 ]
 
 
