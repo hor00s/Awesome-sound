@@ -52,6 +52,7 @@ from .uiactions import (
 from lyricshandler import (
     Renderer,
     Creator,
+    search_for,
 )
 from actions import (
     LOGO,
@@ -226,6 +227,8 @@ class MainWindow(QMainWindow):
         self.actionEdit.triggered.connect(lambda: self.edit_lyrics())
         self.actionDownload.triggered.connect(lambda: self.download_audio())
         self.actionActions.triggered.connect(lambda: self.actions())
+        self.actionSearch_online.triggered.connect(lambda: self.search_in('lyrics'))
+        self.actionSearch_online_2.triggered.connect(lambda: self.search_in('youtube'))
 
         # Dynamic updating
         self.timer = QTimer(self.total_time_lbl)
@@ -391,6 +394,15 @@ class MainWindow(QMainWindow):
         for song in self.player.disk:
             self.music_container.addItem(song)
         self.music_container.setCurrentRow(self.player.disk.song_index)
+
+    def search_in(self, site: str) -> None:
+        search = search_for(site, self.player.disk.song_name)
+
+        (
+            search.song_name()
+                  .query()
+                  .search()
+        )
 
     def edit_lyrics(self):
         lang = get_active_language()

@@ -366,6 +366,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionSearch_online_2"/>
     <addaction name="actionImport_songs"/>
     <addaction name="actionDelete_song"/>
     <addaction name="actionExport_song"/>
@@ -384,6 +385,7 @@
      <string>Lyrics</string>
     </property>
     <addaction name="actionChoose_file"/>
+    <addaction name="actionSearch_online"/>
     <addaction name="actionDelay"/>
     <addaction name="actionDelete"/>
     <addaction name="actionEdit"/>
@@ -561,6 +563,16 @@
   <action name="actionActions">
    <property name="text">
     <string>Actions</string>
+   </property>
+  </action>
+  <action name="actionSearch_online">
+   <property name="text">
+    <string>Search online</string>
+   </property>
+  </action>
+  <action name="actionSearch_online_2">
+   <property name="text">
+    <string>Search online</string>
    </property>
   </action>
  </widget>
