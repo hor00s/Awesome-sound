@@ -427,7 +427,8 @@ class MainWindow(QMainWindow):
 
     def actions(self):
         actions = ActionsWindow(self, ACTIONS_DIR)
-        actions.set_up('title')
+        actions.set_up(self.window_title)
+
         if actions.accepted():
             action = actions.save()
 

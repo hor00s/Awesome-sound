@@ -75,10 +75,17 @@ def get_song_list(song_dir: str) -> Tuple[str, ...]:
     return tuple(sorted(filter(lambda i: i != '.gitignore', os.listdir(song_dir))))
 
 
+def get_songs_dir(base_dir: Path) -> str:
+    path = os.path.join(base_dir, 'player', 'songs')
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path
+
+
 SOURCE_CODE = 'https://github.com/hor00s/Awesome-sound'
 BASE_DIR: Path = Path(__file__).parent.parent.parent
 LOG_DIR = os.path.join(BASE_DIR, '.logs.txt')
-SONGS_DIR: str = os.path.join(BASE_DIR, 'player', 'songs')
+SONGS_DIR: str = get_songs_dir(BASE_DIR)
 PREVIOUS_BTN: str = os.path.join(BASE_DIR, 'player', 'images', 'previous-button.png')
 PAUSE_BTN: str = os.path.join(BASE_DIR, 'player', 'images', 'pause-button.png')
 PLAY_BTN: str = os.path.join(BASE_DIR, 'player', 'images', 'play-button.png')
