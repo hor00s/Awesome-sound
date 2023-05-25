@@ -48,7 +48,7 @@ from PyQt5.QtWidgets import (
 )
 
 
-class ScrollMessageBox(QMessageBox):
+class LogsWindow(QMessageBox):
     def __init__(self, title: str, content_lines: str, min_width: int,
                  min_height: int, icon: QtGui.QIcon, *args: Any, **kwargs: Any) -> None:
         QMessageBox.__init__(self, *args, **kwargs)
@@ -62,6 +62,62 @@ class ScrollMessageBox(QMessageBox):
         lay = QVBoxLayout(self.content)
 
         lay.addWidget(QLabel(content_lines, self))
+        self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())  # type: ignore
+        self.setStyleSheet("QScrollArea{min-width:%spx; min-height: %spx}"
+                           % (str(min_width), str(min_height)))
+        bottom = scroll.verticalScrollBar().maximum()
+        scroll.verticalScrollBar().setValue(bottom)
+
+
+class ShortcutWindow(QMessageBox):
+    def __init__(self, title: str, content_lines: List[List[str]], min_width: int,
+                 min_height: int, icon: QtGui.QIcon, *args: Any, **kwargs: Any) -> None:
+        QMessageBox.__init__(self, *args, **kwargs)
+        self.setWindowTitle(title)
+        self.setWindowIcon(icon)
+
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        self.content = QWidget()
+        scroll.setWidget(self.content)
+        lay = QGridLayout(self.content)
+
+        label_style = """
+            QLabel {
+                font-size: 14px;
+                color: #333333;
+                background-color: #F0F0F0;
+                padding: 5px;
+                border: 1px solid #CCCCCC;
+            }
+        """
+        header_style = """
+            QLabel {
+                font-size: 14px;
+                color: #333333;
+                background-color: #F0F0F0;
+                padding: 5px;
+                border: 1px solid #CCCCCC;
+                font-weight: bold;
+            }
+        """
+
+        header_desc = QLabel('Description')
+        header_key = QLabel('Key')
+        header_desc.setStyleSheet(header_style)
+        header_key.setStyleSheet(header_style)
+
+        lay.addWidget(header_desc, 0, 0)
+        lay.addWidget(header_key, 0, 1)
+
+        for row, pair in enumerate(content_lines):
+            desc, key = pair
+            key_lbl = QLabel(desc)
+            name_lbl = QLabel(key)
+            key_lbl.setStyleSheet(label_style)
+            name_lbl.setStyleSheet(label_style)
+            lay.addWidget(key_lbl, row + 1, 0)
+            lay.addWidget(name_lbl, row + 1, 1)
 
         self.layout().addWidget(scroll, 0, 0, 1, self.layout().columnCount())  # type: ignore
         self.setStyleSheet("QScrollArea{min-width:%spx; min-height: %spx}"
@@ -268,7 +324,7 @@ class ActionsWindow(QDialog):
         self.actions_box = QComboBox(self)
 
         self.save_btn = QPushButton(self)
-        self.save_btn.setText('Save state')
+        self.save_btn.setText('Save action')
 
         self.set_playback_state(False)
         self.vol_slider.setValue(50)

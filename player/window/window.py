@@ -83,11 +83,12 @@ from actions import (
 )
 from .customwidgets import (
     StatusBarTimeEdit,
-    ScrollMessageBox,
+    ShortcutWindow,
     StatusBarButton,
     ComboboxDialog,
     ActionsWindow,
     WorkerThread,
+    LogsWindow,
     TextEditor,
     State,
 )
@@ -442,12 +443,13 @@ class MainWindow(QMainWindow):
     def apply_action(self, state: State):
         name, _, playback, mute, volume, _ = state
 
-        self.volume_control(volume)
         if playback and not self.player._is_playing or not playback and self.player._is_playing:
             self.play_btn_switcher()
 
         if mute and not self.player._is_muted or not mute and self.player._is_muted:
             self.mute_player()
+
+        self.volume_bar.setValue(volume)
         self.volume_control(volume)
 
         lang = get_active_language()
@@ -732,20 +734,20 @@ class MainWindow(QMainWindow):
                 logs = f.read()
 
             lang = get_active_language()
-            res = ScrollMessageBox(get_message(lang, 'logs'), logs,
-                                   w_width, w_height, QtGui.QIcon(LOGO))
+            res = LogsWindow(get_message(lang, 'logs'), logs,
+                             w_width, w_height, QtGui.QIcon(LOGO))
             res.exec_()
         else:
             raise FileNotFoundError("There is no file assigned for logging or is deleted")
 
     def shortcuts_help(self) -> None:
-        w_width, w_height = 150, 300
-        msg = ""
+        w_width, w_height = 280, 300
+        msg = []
         for bind, key in SHORTCUTS.items():
-            msg += f"{bind} ~> {key}\n"
+            msg.append([bind, key])
         lang = get_active_language()
-        res = ScrollMessageBox(get_message(lang, 'shortcuts'), msg,
-                               w_width, w_height, QtGui.QIcon(LOGO))
+        res = ShortcutWindow(get_message(lang, 'shortcuts'), msg,
+                             w_width, w_height, QtGui.QIcon(LOGO))
         res.exec_()
 
     def update_song_list(self, song_list: Tuple[str, ...], deletion: bool = False) -> None:
@@ -898,11 +900,11 @@ class MainWindow(QMainWindow):
         total_time = tag.duration
         total_seconds = total_time * 60
         self.song_slider.setRange(0, total_seconds)  # Set the total steps of the slider
-
         # Current time. Use this for the slider update
         current_time = self.sound.time
         current_seconds = current_time * 60
 
+        self.check_actions()
         if not self.is_pressed:
             # When the slider is pressed, stop updating the progres bar automaticaly so we can
             # set it where it will be released
@@ -930,4 +932,3 @@ class MainWindow(QMainWindow):
         if '.' in current_time_text:
             current_time_text = current_time_text[:current_time_text.index('.') + 3]
             self.current_time_lbl.setText(current_time_text)
-        self.check_actions()
