@@ -18,7 +18,7 @@ from comps import (
 )
 from actions import (
     logger,
-    get_active_language
+    get_active_language,
 )
 
 
@@ -44,6 +44,10 @@ def log_error(err: Exception) -> None:
 Short description: {err}
 Detailed description: {long_error}"""
     logger.error(err_format)
+
+
+def filter_song_name(song_name: str, forbidden_chars: Iterable[str]) -> str:
+    return ''.join(char for char in song_name if char not in forbidden_chars)
 
 
 def get_datetime() -> datetime.datetime:
@@ -273,7 +277,8 @@ def even_spaces(first_word: str, space_buffer: int) -> str:
     return " " * spaces
 
 
-def rename(path: str, file_name: str, new_name: str, extension: str) -> None:
+def rename(path: str, file_name: str, new_name: str,
+           extension: str, forbidden_chars: Iterable[str]) -> None:
     """This function can rename a song preserving its position and extension automatically
 
     :param path: Source path to the song that is to be renamed
@@ -286,7 +291,8 @@ def rename(path: str, file_name: str, new_name: str, extension: str) -> None:
     :type extension: str
     """
     src = os.path.join(path, file_name + extension)
-    dst = os.path.join(path, f"{new_name}{extension}")
+    dst = os.path.join(path, f"{filter_song_name(new_name, forbidden_chars)}{extension}")
+    print(dst)
     os.rename(src, dst)
 
 
@@ -318,7 +324,7 @@ def time_to_total_seconds(time: str) -> float:
     return total_seconds
 
 
-def download_audio(yt_link: str, dst_path: str) -> None:
+def download_audio(yt_link: str, dst_path: str, forbidden_chars: Iterable[str]) -> None:
     video = YouTube(yt_link)
     video = video.streams.get_audio_only()  # type: ignore
 
@@ -327,4 +333,4 @@ def download_audio(yt_link: str, dst_path: str) -> None:
     audio_name = path.split(os.sep)[-1]
     audio_name = path.split(os.sep)[-1][:audio_name.rfind('.')] + '.mp3'
 
-    os.rename(path, os.path.join(dst_path, audio_name))
+    os.rename(path, os.path.join(dst_path, filter_song_name(audio_name, forbidden_chars)))

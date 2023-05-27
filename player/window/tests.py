@@ -13,6 +13,7 @@ from actions import (
     get_song_list,
 )
 from .uiactions import (
+    filter_song_name,
     get_delay_key,
     get_disk,
     get_lyrics_file,
@@ -101,6 +102,20 @@ class TestUiActions(unittest.TestCase):
         songs = SONGS
         self.assertEqual(disk.song_mp3, songs[index])
         self.assertEqual(disk.song_index, index)
+
+    def test_filter_song_name(self) -> None:
+        chars = ('/', ':', '-')
+        names = (
+            ('te/st', 'test'),
+            ('te-st', 'test'),
+            ('te/-st', 'test'),
+            ('te -/ st', 'te  st'),
+            ('te :st', 'te st'),
+            ('test', 'test'),
+        )
+        for name, expected in names:
+            result = filter_song_name(name, chars)
+            self.assertEqual(result, expected)
 
     def test_get_lyrics_file(self) -> None:
         test_config.init()

@@ -12,6 +12,7 @@ from typing import (
 
 
 __all__ = (
+    'PLATFORM',
     'SOURCE_CODE',
     'BASE_DIR',
     'PREVIOUS_BTN',
@@ -34,6 +35,7 @@ __all__ = (
     'VERISONS',
     'VERISONS',
     'SHORTCUTS',
+    'FORBIDDEN_CHARS',
     'SUPPORTED_SONG_FORMATS',
     'SUPPORTED_LYRICS_FORMATS',
     'CONFIG',
@@ -82,6 +84,7 @@ def get_songs_dir(base_dir: Path) -> str:
     return path
 
 
+PLATFORM: str = sys.platform
 SOURCE_CODE = 'https://github.com/hor00s/Awesome-sound'
 BASE_DIR: Path = Path(__file__).parent.parent.parent
 LOG_DIR = os.path.join(BASE_DIR, '.logs.txt')
@@ -104,6 +107,11 @@ LYRICS_DIR: str = lyrics_dir(BASE_DIR)
 THEMECLR: str = 'rgb(0,206,209)'
 TITLE: str = 'Awesome sound'
 DONWLOAD_DIR = Path(Path.home(), 'Downloads')
+FORBIDDEN_CHARS: Dict[str, Tuple[str, ...]] = {
+    'win32': ('<', '>', ':', '"', '/', '\\', '|', '?', '*'),
+    'linux': ('/',),
+    'darwin': ('/',),
+}
 VERISONS: Tuple[str, ...] = (
     'v.0.5',
     'v.0.6',

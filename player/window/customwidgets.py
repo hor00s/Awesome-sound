@@ -6,9 +6,11 @@ from .languages import get_message
 from actions import get_active_language
 from PyQt5 import QtGui
 from actions import (
+    PLATFORM,
     PLAY_BTN,
     MUTE_BTN,
     PAUSE_BTN,
+    FORBIDDEN_CHARS,
 )
 from PyQt5.QtCore import (
     Qt,
@@ -20,6 +22,7 @@ from PyQt5.QtCore import (
 from typing import (
     NamedTuple,
     Generator,
+    Iterable,
     Optional,
     Callable,
     Tuple,
@@ -46,6 +49,62 @@ from PyQt5.QtWidgets import (
     QWidget,
     QLabel,
 )
+
+
+class CustomLineEdit(QLineEdit):
+
+    def __init__(self, forbidden_chars: Iterable[Any], parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.forbidden_chars = forbidden_chars
+        if forbidden_chars is not None:
+            self.textChanged.connect(lambda: self.validate_input(forbidden_chars))  # type: ignore
+
+    def validate_input(self, forbidden_chars: str) -> None:
+        if self.is_valid():
+            self.setStyleSheet('')
+        else:
+            self.setStyleSheet('background-color: red;')
+
+    def is_valid(self) -> bool:
+        return not any(char in self.text() for char in self.forbidden_chars)
+
+
+class RenamePrompt(QDialog):
+    def __init__(self, title: str, prompt: str, default_field: str = "",
+                 parent: Optional[QWidget] = None) -> None:
+        super().__init__(parent)
+        self.q = False
+        self.setWindowTitle(title)
+
+        self.forbidden_chars = FORBIDDEN_CHARS[PLATFORM]
+
+        self.my_layout = QGridLayout(self)
+        self.prompt = QLabel(prompt)
+        self.name_inp = CustomLineEdit(self.forbidden_chars, self)
+        self.ok_btn = QPushButton("Ok")
+        self.cancel_btn = QPushButton("Cancel")
+        self.name_inp.setText(default_field)
+
+        self.ok_btn.clicked.connect(self.accept)  # type: ignore
+        self.cancel_btn.clicked.connect(self.reject)  # type: ignore
+
+        self.my_layout.addWidget(self.prompt, 0, 0, 1, 2)
+        self.my_layout.addWidget(self.name_inp, 1, 0, 1, 2)
+        self.my_layout.addWidget(self.ok_btn, 2, 0)
+        self.my_layout.addWidget(self.cancel_btn, 2, 1)
+        self.exec_()
+
+    def accept(self) -> None:
+        if self.name_inp.is_valid():
+            self.q = True
+            return super().accept()
+
+    def reject(self) -> None:
+        self.q = False
+        return super().reject()
+
+    def get_text(self) -> Tuple[str, bool]:
+        return self.name_inp.text(), self.q
 
 
 class LogsWindow(QMessageBox):
@@ -297,7 +356,8 @@ class ActionsWindow(QDialog):
         self.my_layout = QGridLayout()
         self.setFixedWidth(200)
 
-        self.action_name = QLineEdit(self)
+        self.forbidden_chars = FORBIDDEN_CHARS[PLATFORM]
+        self.action_name = CustomLineEdit(self.forbidden_chars, self)
 
         self.dtedit = QDateTimeEdit(self)
         self.dtedit.setDateTime(dt.datetime.now())
@@ -364,7 +424,7 @@ class ActionsWindow(QDialog):
         super().closeEvent(a0)
 
     def finish(self) -> None:
-        if self.action_name.text():
+        if self.action_name.text() and self.action_name.is_valid():
             self._accepted = True
             self.accept()
 

@@ -63,6 +63,7 @@ from actions import (
     NEXT_BTN,
     PLAY_BTN,
     MUTE_BTN,
+    PLATFORM,
     SHORTCUTS,
     SONGS_DIR,
     PAUSE_BTN,
@@ -75,6 +76,7 @@ from actions import (
     SOURCE_CODE,
     BACKWARD_ARR,
     PREVIOUS_BTN,
+    FORBIDDEN_CHARS,
     SUPPORTED_SONG_FORMATS,
     SUPPORTED_LYRICS_FORMATS,
     get_song_list,
@@ -89,6 +91,7 @@ from .customwidgets import (
     ComboboxDialog,
     ActionsWindow,
     WorkerThread,
+    RenamePrompt,
     LogsWindow,
     TextEditor,
     State,
@@ -126,6 +129,7 @@ class MainWindow(QMainWindow):
         dt = datetime.timedelta(hours=0, minutes=0, seconds=0, milliseconds=0)
         self.timestamp_start = dt
         self.timestamp_stop = dt
+        self.forbidden_chars = FORBIDDEN_CHARS[PLATFORM]
 
         self.set_title()
 
@@ -518,15 +522,16 @@ class MainWindow(QMainWindow):
         lang = get_active_language()
         title, prompt = get_message(lang, 'rename_song'), get_message(lang, 'choose_name')
         song_name = self.player.disk.song_name
-        new_name, q = QInputDialog.getText(self, title, prompt, text=song_name)
+        d = RenamePrompt(title, prompt, song_name, self)
+        new_name, q = d.get_text()
 
         lyrics_file = f"{song_name}.srt"
         if new_name and q:
-            rename(SONGS_DIR, song_name, new_name, '.mp3')
+            rename(SONGS_DIR, song_name, new_name, '.mp3', self.forbidden_chars)
             rename_info = get_message(lang, 'rename_song', song_name, '->', new_name)
             logger.info(rename_info)
             if os.path.exists(os.path.join(LYRICS_DIR, lyrics_file)):
-                rename(LYRICS_DIR, song_name, new_name, '.srt')
+                rename(LYRICS_DIR, song_name, new_name, '.srt', self.forbidden_chars)
 
                 if (key := get_delay_key(self.player.disk)) in config:
                     value = config[key]
@@ -717,7 +722,8 @@ class MainWindow(QMainWindow):
                 msg = get_message(lang, 'invalid_url')
                 self._show_popup(msg)
             else:
-                download_thread = WorkerThread(self, download_audio, text, SONGS_DIR)
+                download_thread = WorkerThread(self, download_audio, text,
+                                               SONGS_DIR, self.forbidden_chars)
                 download_thread.finished.connect(lambda: self._download_finished())
                 download_thread.start()
 
